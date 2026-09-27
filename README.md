@@ -92,8 +92,10 @@ python -m venv backend/.venv
 backend/.venv/Scripts/python -m pip install -r backend/requirements.txt
 
 # Frontend (built once, then served by the backend)
-npm --prefix frontend install
-npm --prefix frontend run build
+cd frontend
+npm install
+npm run build
+cd ..
 ```
 
 > Commands are written for Windows (PowerShell, cmd or Git Bash). On macOS/Linux, replace
@@ -129,7 +131,17 @@ backend/.venv/Scripts/python -m uvicorn app.main:app --app-dir backend --port 80
 Open **http://localhost:8000**. Go to **Indexing**, click **Scan & index changes**, and watch the progress.
 Then search from the **Search** tab. Search works while indexing runs; results fill in as assets complete.
 
-**Frontend dev mode** (optional, hot reload): keep the backend running, run `npm --prefix frontend run dev`, then open http://localhost:5173.
+**Frontend dev mode** (optional, hot reload): keep the backend running, then in a second terminal run `cd frontend`
+and `npm run dev`, and open http://localhost:5173.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `ffmpeg`/`ffprobe` not found, videos fail | Open a new terminal after installing ffmpeg, or set full paths in `FFMPEG_BIN` / `FFPROBE_BIN` in `.env` |
+| `pip install` fails with "No such file or directory" deep inside `site-packages` (Windows) | Path too long: clone the repo to a short path (e.g. `C:\dam`) or enable Windows long paths |
+| First indexing run seems stuck on "loading AI models" | Models are downloading (~1 GB). Run `download_models.py` first to see progress |
+| "an indexing run is already in progress" | Wait for it or press **Cancel** on the Indexing tab; runs resume where they stopped |
 
 ### 6. Evaluate search quality (optional)
 
