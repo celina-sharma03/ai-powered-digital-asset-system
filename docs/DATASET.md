@@ -58,10 +58,17 @@ Several are close on purpose (cat vs woman with cat, office work vs business mee
 - **80 of 125 PDFs are scanned** (no text layer on some pages) and needed OCR. OCR is the slowest step on CPU,
   so it's capped at 4 pages per document.
 
-## Size limitation
+## Size limitation and handling a larger collection
 
-The assignment suggests 5–10 GB; this dataset is 3.1 GB. The limit was processing time on a CPU-only laptop
-(i3-1315U, 8 GB RAM) with a same-day deadline, not the design:
+### The limitation
+
+The assignment suggests 5–10 GB; this dataset is **3.1 GB**. The limit was **processing time**, not storage,
+internet or the design:
+- The laptop is CPU-only: Intel i3-1315U, 8 GB RAM, no GPU.
+- The deadline was the same day.
+- The first full index of 3.1 GB took about an hour (measured below).
+
+### Measured on this dataset
 
 | Run | Files | Work | Time |
 |---|---|---|---|
@@ -69,7 +76,34 @@ The assignment suggests 5–10 GB; this dataset is 3.1 GB. The limit was process
 | Incremental, after adding PDFs (resumed after a cancel) | 2,026 | 125 new, 1,898 unchanged skipped | 17 min |
 | Re-run with nothing changed | 2,026 | 0 | **1 s** |
 
-Cost grows with the **number** of files and video minutes, not gigabytes: about 0.2 s per image, 3–25 s per
-video, and 2–20 s per PDF on this CPU. A 10 GB collection of the same mix would take about 2–3 hours for the first
-pass on this laptop, and seconds for later passes. See the README's *Production improvements* for scaling out
-(GPU workers, a job queue, a Qdrant server).
+- **Cost per file on this CPU:** about 0.2 s per image, 3–25 s per video, 2–20 s per PDF.
+  Cost depends on the *number* of files and video minutes, not on gigabytes.
+- **Index size:** 109 MB for 3.1 GB of media (about 3.5%): SQLite, vectors and thumbnails.
+- **Estimate for 10 GB of the same mix** (about 6,500 assets): roughly 3 hours for the first pass on this laptop,
+  then seconds for re-runs. Nothing in the code has to change.
+
+### What already handles a large collection (implemented)
+
+| Concern | How the current code handles it | Where |
+|---|---|---|
+| Re-runs over a big folder | Unchanged files (same path, size and modified time) are skipped **without re-reading them**. Only new or changed files cost anything | `indexing/scanner.py` (fast path in `scan()`) |
+| Huge files | Hashing streams 1 MB chunks, so a 5 GB video never has to fit in memory | `indexing/scanner.py` (`sha256_of`) |
+| Very long videos | Cost is capped: at most 12 keyframes and 180 s of audio per video, whatever its length | `indexing/video.py`, `.env` `VIDEO_*`, `WHISPER_MAX_SECONDS` |
+| Very long PDFs | Text from the first 60 pages, visuals from 3 pages, OCR on at most 4 pages | `indexing/pdf.py` (constants at the top) |
+| Large images | Downscaled to 1024 px before any AI step | `indexing/image.py` |
+| Memory | Models load once; files are processed one at a time, so memory doesn't grow with collection size | `indexing/pipeline.py` |
+| Long-running jobs | Runs in the background with a live progress bar and a cancel button; search keeps working meanwhile | `indexing/pipeline.py`, Indexing tab |
+| Crash or restart mid-run | Each file is committed on its own; on restart, unfinished files return to the queue and the next run continues (tested: run 2 was cancelled, run 3 resumed) | `db.py` (`init_db`), `indexing/pipeline.py` |
+| Duplicates | Found by content hash, so a duplicate costs one hash and no AI work | `indexing/scanner.py` |
+| Bad files | One corrupted file fails alone with a reason; the run continues | `indexing/pipeline.py` |
+| Upgrading the pipeline | Bumping `PIPELINE_VERSION` reprocesses only outdated assets, never the whole library | `config.py` |
+
+### What would change as the collection grows
+
+| Scale | What changes |
+|---|---|
+| **About 10 GB** (thousands of assets) | Nothing. It works as-is; only the first pass is slow on a CPU |
+| **About 100 GB** (tens to hundreds of thousands of assets) | Switch embedded Qdrant to a **Qdrant server** (a one-line change in `search/vector_store.py`) for approximate (HNSW) search and to allow **several worker processes**. Add a **GPU** to batch embeddings (roughly 10–50× faster than this CPU) |
+| **1 TB and up** (millions of assets) | A **job queue** (Redis + Celery/RQ) feeding many workers; **Postgres** instead of SQLite; files in object storage, with upload events triggering indexing instead of folder scans |
+
+More production changes (better models, re-ranking, operations) are in the README under *Production improvements*.

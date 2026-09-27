@@ -204,9 +204,9 @@ Interactive docs: http://localhost:8000/docs
 
 ## Known limitations
 
-- **Dataset is 3.1 GB, not 5–10 GB.** The limit was CPU-only indexing time and a same-day deadline, not the design.
-  Processing time grows with the number of files and video minutes (about 0.2 s per image and 3–25 s per video on this laptop),
-  not with gigabytes. See [docs/DATASET.md](docs/DATASET.md) for timings and how a larger set would behave.
+- **Dataset is 3.1 GB, not 5–10 GB**, because of CPU-only indexing time and a same-day deadline, not the design.
+  For measured timings, what already handles a large collection, and what would change at 100 GB+, see
+  [Size limitation and handling a larger collection](docs/DATASET.md#size-limitation-and-handling-a-larger-collection).
 - **Stock videos rarely contain speech** (3 of 195), so the transcript signal is barely exercised. "Testimonial"
   queries rely mostly on the visual match (a person talking to the camera).
 - **Genre words dominate some document queries.** "Tourism brochure" also returns car brochures, because "brochure"
