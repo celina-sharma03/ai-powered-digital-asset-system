@@ -1,0 +1,86 @@
+[
+  {
+    "id": "q01",
+    "query": "A woman standing with a cat",
+    "user_goal": "Photos where a woman and a cat appear together",
+    "expected": {"media_types": ["image"], "source_queries": ["woman with cat"]}
+  },
+  {
+    "id": "q02",
+    "query": "Customer testimonial videos",
+    "user_goal": "Videos of a person speaking to the camera (testimonial / interview style)",
+    "expected": {"media_types": ["video"], "source_queries": ["person talking to camera", "testimonial interview"]}
+  },
+  {
+    "id": "q03",
+    "query": "Brochures related to residential projects",
+    "user_goal": "PDF brochures/documents about housing or residential real estate",
+    "expected": {"media_types": ["pdf"], "source_queries": ["real estate brochure", "housing project", "residential apartments"]}
+  },
+  {
+    "id": "q04",
+    "query": "Images showing a modern living room",
+    "user_goal": "Interior photos of contemporary living rooms",
+    "expected": {"media_types": ["image"], "source_queries": ["modern living room"]}
+  },
+  {
+    "id": "q05",
+    "query": "Videos containing construction activity",
+    "user_goal": "Construction site footage: machinery, workers, building work",
+    "expected": {"media_types": ["video"], "source_queries": ["construction site", "construction workers"]}
+  },
+  {
+    "id": "q06",
+    "query": "A dog playing outside",
+    "user_goal": "Photos of dogs playing",
+    "expected": {"media_types": ["image"], "source_queries": ["dog playing"]}
+  },
+  {
+    "id": "q07",
+    "query": "Aerial drone view of houses",
+    "user_goal": "Drone footage of residential neighbourhoods",
+    "expected": {"media_types": ["video"], "source_queries": ["aerial view houses"]}
+  },
+  {
+    "id": "q08",
+    "query": "Business people shaking hands",
+    "user_goal": "Handshake photos in a business context",
+    "expected": {"media_types": ["image"], "source_queries": ["handshake"]}
+  },
+  {
+    "id": "q09",
+    "query": "Waves crashing on the beach",
+    "user_goal": "Beach / ocean-wave imagery, photo or video",
+    "expected": {"media_types": ["image", "video"], "source_queries": ["beach", "ocean waves"]}
+  },
+  {
+    "id": "q10",
+    "query": "Someone cooking food in a kitchen",
+    "user_goal": "Footage of a person preparing food",
+    "expected": {"media_types": ["video"], "source_queries": ["cooking"]}
+  },
+  {
+    "id": "q11",
+    "query": "City skyline lit up at night",
+    "user_goal": "Night-time city skyline photos",
+    "expected": {"media_types": ["image"], "source_queries": ["city skyline night"]}
+  },
+  {
+    "id": "q12",
+    "query": "Company annual report with financial results",
+    "user_goal": "Annual report PDFs",
+    "expected": {"media_types": ["pdf"], "source_queries": ["annual report"]}
+  },
+  {
+    "id": "q13",
+    "query": "Travel and tourism brochure",
+    "user_goal": "Tourism / travel promotional PDFs",
+    "expected": {"media_types": ["pdf"], "source_queries": ["tourism brochure"]}
+  },
+  {
+    "id": "q14",
+    "query": "Team meeting in an office",
+    "user_goal": "People meeting or working together in an office (photo or video)",
+    "expected": {"media_types": ["image", "video"], "source_queries": ["business meeting", "office work"]}
+  }
+]

@@ -1,0 +1,21 @@
+# CPU-only PyTorch wheels (no CUDA download, much smaller)
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# API
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30
+python-dotenv>=1.0
+httpx>=0.27
+
+# Storage
+qdrant-client>=1.12,<2.0
+
+# AI models
+torch>=2.3
+sentence-transformers>=3.0
+faster-whisper>=1.0
+rapidocr-onnxruntime>=1.3
+
+# File processing
+pillow>=10.0
+pymupdf>=1.24

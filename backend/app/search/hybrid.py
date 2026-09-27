@@ -1,0 +1,178 @@
+"""Hybrid search: three retrievers fused with Reciprocal Rank Fusion (RRF).
+
+  visual   CLIP text-embedding of the query vs image / keyframe / page-render vectors
+           -> "a woman standing with a cat", "modern living room"
+  text     BGE query-embedding vs OCR / PDF text / transcript / caption chunks
+           -> "brochures related to residential projects", spoken testimonials
+  keyword  BM25 over the same extracted text
+           -> exact words and numbers
+
+Why RRF: the three scores live on different scales (CLIP cosine ~0.2-0.35, BGE cosine
+~0.5-0.9, BM25 unbounded), so adding raw scores would be meaningless. RRF only uses
+each result's RANK in each list: score = sum(w / (k + rank)). It's simple, robust and
+has no tuning beyond the weights.
+
+Query intent: words like "videos", "photos" or "brochures" give a soft boost to that
+file type. It's a boost rather than a filter, so a strong match of another type can
+still appear. Explicit UI filters are hard filters.
+"""
+
+import re
+from collections import defaultdict
+
+from ..ai import embeddings
+from ..db import connect
+from . import vector_store
+from .keyword import keyword_search
+
+RRF_K = 60
+WEIGHTS = {"visual": 1.0, "text": 1.0, "keyword": 0.6}
+# Below these similarities a hit is treated as noise and not used as evidence.
+MIN_VISUAL_SCORE = 0.20
+MIN_TEXT_SCORE = 0.55
+CANDIDATES = 300
+INTENT_BOOST = 1.5
+
+INTENT_WORDS = {
+    "video": r"\b(videos?|clips?|footage|films?|recordings?)\b",
+    "image": r"\b(images?|photos?|pictures?|pics?|photographs?|shots?)\b",
+    "pdf": r"\b(brochures?|pdfs?|documents?|docs?|reports?|catalog(ue)?s?|flyers?|leaflets?|menus?)\b",
+}
+
+
+def detect_intent(query: str) -> set[str]:
+    q = query.lower()
+    return {ftype for ftype, pattern in INTENT_WORDS.items() if re.search(pattern, q)}
+
+
+def _group_best(points, min_score: float) -> list[dict]:
+    """Collapse many points (frames, pages, chunks) to one entry per asset: its best hit."""
+    best: dict[int, dict] = {}
+    for p in points:
+        if p.score < min_score:
+            continue
+        aid = p.payload["asset_id"]
+        if aid not in best or p.score > best[aid]["score"]:
+            best[aid] = {"asset_id": aid, "score": float(p.score), "kind": p.payload.get("kind"),
+                         "locator": p.payload.get("locator"), "snippet": p.payload.get("text")}
+    return sorted(best.values(), key=lambda x: x["score"], reverse=True)
+
+
+def retrieve(query: str, mode: str, file_types: list[str] | None) -> dict[str, list[dict]]:
+    lists: dict[str, list[dict]] = {}
+    if mode in ("hybrid", "visual"):
+        vec = embeddings.embed_clip_text(query)
+        lists["visual"] = _group_best(vector_store.search(vector_store.VISUAL, vec, CANDIDATES, file_types),
+                                      MIN_VISUAL_SCORE)
+    if mode in ("hybrid", "text"):
+        vec = embeddings.embed_query_text(query)
+        lists["text"] = _group_best(vector_store.search(vector_store.TEXT, vec, CANDIDATES, file_types),
+                                    MIN_TEXT_SCORE)
+    if mode in ("hybrid", "keyword"):
+        seen, kw = set(), []
+        for hit in keyword_search(query, CANDIDATES):
+            if hit["asset_id"] not in seen:          # already sorted best-first
+                seen.add(hit["asset_id"])
+                kw.append({**hit, "kind": hit["source"]})
+        lists["keyword"] = kw
+    return lists
+
+
+def fuse(lists: dict[str, list[dict]], intent: set[str], types_by_asset: dict[int, str]) -> list[dict]:
+    fused: dict[int, dict] = defaultdict(lambda: {"score": 0.0, "matches": {}})
+    for signal, hits in lists.items():
+        for rank, hit in enumerate(hits, start=1):
+            entry = fused[hit["asset_id"]]
+            entry["score"] += WEIGHTS[signal] / (RRF_K + rank)
+            entry["matches"][signal] = {**hit, "rank": rank}
+    for aid, entry in fused.items():
+        if intent and types_by_asset.get(aid) in intent:
+            entry["score"] *= INTENT_BOOST
+    return sorted(({"asset_id": aid, **e} for aid, e in fused.items()), key=lambda x: x["score"], reverse=True)
+
+
+def search(query: str, *, mode: str = "hybrid", file_types: list[str] | None = None,
+           folder: str | None = None, min_size: int | None = None, max_size: int | None = None,
+           min_duration: float | None = None, max_duration: float | None = None,
+           limit: int = 24) -> dict:
+    query = query.strip()
+    intent = detect_intent(query) if not file_types else set()
+    lists = retrieve(query, mode, file_types)
+
+    candidate_ids = {h["asset_id"] for hits in lists.values() for h in hits}
+    assets = _load_assets(candidate_ids)
+    ranked = fuse(lists, intent, {aid: a["file_type"] for aid, a in assets.items()})
+
+    results = []
+    for r in ranked:
+        a = assets.get(r["asset_id"])
+        if a is None or not _passes_filters(a, file_types, folder, min_size, max_size, min_duration, max_duration):
+            continue
+        results.append(_to_result(a, r))
+        if len(results) >= limit:
+            break
+    return {"query": query, "mode": mode, "intent": sorted(intent), "total_candidates": len(ranked),
+            "results": results}
+
+
+# ---------------------------------------------------------------------- helpers
+
+def _load_assets(ids: set[int]) -> dict[int, dict]:
+    if not ids:
+        return {}
+    conn = connect()
+    marks = ",".join("?" * len(ids))
+    rows = conn.execute(f"SELECT * FROM assets WHERE id IN ({marks}) AND status IN ('indexed','partial')",
+                        tuple(ids)).fetchall()
+    assets = {r["id"]: dict(r) for r in rows}
+    for f in conn.execute(f"SELECT * FROM files WHERE asset_id IN ({marks}) AND status='ok' ORDER BY id",
+                          tuple(ids)):
+        if f["asset_id"] in assets:
+            assets[f["asset_id"]].setdefault("files", []).append(dict(f))
+    return {aid: a for aid, a in assets.items() if a.get("files")}   # drop assets with no file left on disk
+
+
+def _passes_filters(a, file_types, folder, min_size, max_size, min_duration, max_duration) -> bool:
+    if file_types and a["file_type"] not in file_types:
+        return False
+    if folder is not None and not any(f["folder"] == folder or f["folder"].startswith(folder + "/")
+                                      for f in a["files"]):
+        return False
+    if min_size is not None and a["size_bytes"] < min_size:
+        return False
+    if max_size is not None and a["size_bytes"] > max_size:
+        return False
+    if min_duration is not None and (a["duration_sec"] or 0) < min_duration:
+        return False
+    if max_duration is not None and a["duration_sec"] is not None and a["duration_sec"] > max_duration:
+        return False
+    return True
+
+
+def _to_result(a: dict, r: dict) -> dict:
+    matches = r["matches"]
+    # Where to open the preview: the locator of the strongest signal (timestamp or page).
+    best_signal = min(matches, key=lambda s: matches[s]["rank"])
+    primary = a["files"][0]
+    return {
+        "asset_id": a["id"],
+        "score": round(r["score"], 5),
+        "file_type": a["file_type"],
+        "filename": primary["filename"],
+        "path": primary["path"],
+        "folder": primary["folder"],
+        "duplicates": [f["path"] for f in a["files"][1:]],
+        "size_bytes": a["size_bytes"],
+        "width": a["width"], "height": a["height"],
+        "duration_sec": a["duration_sec"], "page_count": a["page_count"],
+        "title": a["title"], "summary": a["summary"],
+        "status": a["status"],
+        "thumbnail_url": f"/api/assets/{a['id']}/thumbnail" if a["thumbnail"] else None,
+        "content_url": f"/api/assets/{a['id']}/content",
+        "jump_to": {"kind": matches[best_signal].get("kind"), "locator": matches[best_signal].get("locator")},
+        "matches": {
+            s: {"rank": m["rank"], "score": round(m["score"], 4), "kind": m.get("kind"),
+                "locator": m.get("locator"), "snippet": (m.get("snippet") or "")[:240] or None}
+            for s, m in matches.items()
+        },
+    }
