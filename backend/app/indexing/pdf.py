@@ -17,7 +17,7 @@ from .types import CaptionBudget, Extracted, ProcessingError, TextItem, VisualIt
 
 MAX_TEXT_PAGES = 60         # bound the cost of very long documents
 MAX_RENDERED_PAGES = 3      # pages embedded visually with CLIP
-MAX_OCR_PAGES = 10
+MAX_OCR_PAGES = 4          # OCR is the slowest step on CPU; the first pages (cover, title) matter most
 MIN_TEXT_CHARS = 40         # below this a page is treated as scanned/image-only
 
 
@@ -48,7 +48,7 @@ def process_pdf(path: Path, captions: CaptionBudget) -> Extracted:
             if len(text) < MIN_TEXT_CHARS and settings.ocr_pdf_pages and ocr_used < MAX_OCR_PAGES:
                 ocr_used += 1
                 try:
-                    text, source = ocr.ocr_image(_render(page, 2.0)), "ocr"
+                    text, source = ocr.ocr_image(_render(page, 1.5)), "ocr"
                 except Exception:
                     ocr_errors += 1
             for chunk in chunk_text(text):

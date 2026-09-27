@@ -2,7 +2,8 @@
 
 Sources
   * Pexels API (free licence)  -> photos and videos
-  * Wikimedia Commons API      -> PDF documents / brochures
+  * Internet Archive API       -> PDF brochures, reports, menus, catalogues
+  * Wikimedia Commons API      -> PDF documents (strictly rate-limited, so downloads are paced)
 
 Files get opaque names (``pexels-photo-123.jpg``) and are spread randomly over
 ``batch_XX`` folders, so neither filenames nor folders reveal what a file shows.
@@ -51,6 +52,17 @@ PDF_QUERIES = [
     "real estate brochure", "housing project", "residential apartments", "tourism brochure",
     "annual report", "product catalogue", "restaurant menu", "architecture plan",
 ]
+# Internet Archive title search is literal, so each label maps to a broader search expression.
+ARCHIVE_PDF_QUERIES = {
+    "real estate brochure": "title:(brochure) AND title:(homes OR estate OR estates OR realty OR property)",
+    "housing project": "title:(housing) AND title:(project OR development OR scheme OR estate)",
+    "residential apartments": "title:(apartments OR apartment OR condominium OR condos OR residences) AND title:(brochure OR living OR homes OR luxury)",
+    "tourism brochure": "title:(tourist OR tourism OR visitor OR travel) AND title:(brochure OR guide)",
+    "annual report": 'title:("annual report")',
+    "product catalogue": "title:(catalog OR catalogue) AND title:(product OR products OR price)",
+    "restaurant menu": "title:(restaurant) AND title:(menu)",
+    "architecture plan": "title:(architectural OR architecture OR floor) AND title:(plan OR plans)",
+}
 
 MANIFEST_FIELDS = ["relative_path", "media_type", "source", "source_id", "source_query",
                    "title", "source_url", "license", "bytes"]
@@ -70,9 +82,9 @@ def load_env() -> dict:
     return {**env, **os.environ}
 
 
-def http_json(url: str, headers: dict | None = None) -> dict:
+def http_json(url: str, headers: dict | None = None, timeout: int = 60) -> dict:
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, **(headers or {})})
-    with urllib.request.urlopen(req, timeout=60) as resp:
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
@@ -182,6 +194,36 @@ def commons_pdfs(query: str, count: int, max_bytes: int = 15 * 1024 * 1024) -> l
     return items[:count]
 
 
+def archive_pdfs(label: str, count: int, max_bytes: int = 15 * 1024 * 1024) -> list[dict]:
+    """Internet Archive: search items by title, then pick one PDF file per item."""
+    params = urllib.parse.urlencode([
+        ("q", f"({ARCHIVE_PDF_QUERIES[label]}) AND mediatype:texts AND item_size:[50000 TO 80000000]"),
+        ("fl[]", "identifier"), ("fl[]", "title"), ("sort[]", "downloads desc"),
+        ("rows", int(count * 1.5) + 2), ("output", "json"),
+    ])
+    docs = http_json(f"https://archive.org/advancedsearch.php?{params}")["response"]["docs"]
+
+    def pick(doc):
+        try:
+            files = http_json(f"https://archive.org/metadata/{doc['identifier']}/files", timeout=20).get("result", [])
+        except Exception:
+            return None
+        pdfs = [f for f in files if f["name"].lower().endswith(".pdf") and 0 < int(f.get("size", 0)) <= max_bytes]
+        if not pdfs:
+            return None
+        f = min(pdfs, key=lambda f: int(f["size"]))
+        return {
+            "media_type": "pdf", "source": "internet-archive", "source_id": f"archive-{doc['identifier']}"[:120],
+            "url": f"https://archive.org/download/{doc['identifier']}/{urllib.parse.quote(f['name'])}",
+            "ext": ".pdf", "title": str(doc.get("title", ""))[:200],
+            "source_url": f"https://archive.org/details/{doc['identifier']}", "license": "see source page",
+        }
+
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        items = [it for it in pool.map(pick, docs) if it]
+    return items[:count]
+
+
 # --------------------------------------------------------------------------- edge cases
 
 def make_edge_cases(media_dir: Path, rng: random.Random) -> None:
@@ -215,12 +257,16 @@ def main() -> None:
     ap.add_argument("--pdfs-per-query", type=int, default=25)
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--no-edge-cases", action="store_true")
+    ap.add_argument("--only-pdfs", action="store_true", help="skip Pexels photos/videos")
+    ap.add_argument("--pdf-sources", default="archive,commons",
+                    help="comma-separated: archive (Internet Archive), commons (Wikimedia, strictly rate-limited)")
     args = ap.parse_args()
 
     env = load_env()
     api_key = env.get("PEXELS_API_KEY", "")
-    if not api_key:
+    if not api_key and not args.only_pdfs:
         sys.exit("PEXELS_API_KEY is missing. Add it to .env (see .env.example).")
+    pdf_sources = set(args.pdf_sources.split(","))
 
     media_dir = Path(env.get("MEDIA_DIR", "./data/media"))
     media_dir = media_dir if media_dir.is_absolute() else (REPO_ROOT / media_dir).resolve()
@@ -230,18 +276,24 @@ def main() -> None:
 
     # 1. Collect candidate items from every source/query.
     plan: list[tuple[str, dict]] = []
-    for q in PHOTO_QUERIES:
-        plan += [(q, it) for it in pexels_photos(api_key, q, args.photos_per_query)]
-        print(f"[plan] photos  {q!r}")
-    for q in VIDEO_QUERIES:
-        plan += [(q, it) for it in pexels_videos(api_key, q, args.videos_per_query)]
-        print(f"[plan] videos  {q!r}")
-    for q in PDF_QUERIES:
-        try:
-            plan += [(q, it) for it in commons_pdfs(q, args.pdfs_per_query)]
-            print(f"[plan] pdfs    {q!r}")
-        except Exception as exc:  # Commons search hiccups shouldn't kill the whole run
-            print(f"[plan] pdfs    {q!r} failed: {exc}")
+    if not args.only_pdfs:
+        for q in PHOTO_QUERIES:
+            plan += [(q, it) for it in pexels_photos(api_key, q, args.photos_per_query)]
+            print(f"[plan] photos  {q!r}")
+        for q in VIDEO_QUERIES:
+            plan += [(q, it) for it in pexels_videos(api_key, q, args.videos_per_query)]
+            print(f"[plan] videos  {q!r}")
+    pdf_finders = {"archive": archive_pdfs, "commons": commons_pdfs}
+    for source in ("archive", "commons"):
+        if source not in pdf_sources:
+            continue
+        for q in PDF_QUERIES:
+            try:  # one source/query failing shouldn't kill the whole run
+                found = pdf_finders[source](q, args.pdfs_per_query)
+                plan += [(q, it) for it in found]
+                print(f"[plan] pdfs    {source}: {q!r} -> {len(found)}")
+            except Exception as exc:
+                print(f"[plan] pdfs    {source}: {q!r} failed: {exc}")
 
     # The same item can come back for several queries; keep the first one.
     seen, unique = set(manifest.known), []

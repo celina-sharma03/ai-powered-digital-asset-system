@@ -90,8 +90,10 @@ cd frontend && npm install && npm run build && cd ..
 backend/.venv/Scripts/python backend/scripts/download_dataset.py
 ```
 
-This fetches about 1,550 photos and about 200 videos from Pexels, plus PDFs from Wikimedia Commons, into `data/media/`.
-It also plants edge cases: duplicates, corrupted files and unsupported files.
+This fetches about 1,600 photos and about 200 videos from Pexels, plus PDFs (brochures, reports, menus, catalogues)
+from the Internet Archive and Wikimedia Commons, into `data/media/`. Files get opaque names and random folders,
+so filenames can't leak their content. It also plants edge cases: duplicates, corrupted files and unsupported files.
+The script can be re-run safely and skips what's already downloaded.
 
 **Option B: use your own folder.** Set `MEDIA_DIR=` in `.env` to any folder of images, videos and PDFs.
 
