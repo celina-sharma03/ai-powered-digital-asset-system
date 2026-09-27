@@ -1,4 +1,4 @@
-"""Hybrid search: three retrievers fused with Reciprocal Rank Fusion (RRF).
+"""Hybrid search: three retrievers fused with confidence-gated Reciprocal Rank Fusion.
 
   visual   CLIP text-embedding of the query vs image / keyframe / page-render vectors
            -> "a woman standing with a cat", "modern living room"
@@ -8,9 +8,18 @@
            -> exact words and numbers
 
 Why RRF: the three scores live on different scales (CLIP cosine ~0.2-0.35, BGE cosine
-~0.5-0.9, BM25 unbounded), so adding raw scores would be meaningless. RRF only uses
-each result's RANK in each list: score = sum(w / (k + rank)). It's simple, robust and
-has no tuning beyond the weights.
+~0.5-0.9, BM25 unbounded), so adding raw scores would be meaningless. RRF uses each
+result's RANK in each list: score = sum(w / (k + rank)).
+
+Why "confidence-gated": plain RRF gives the #1 hit of every list the same credit, even
+when that list has no good match. The evaluation showed the problem: for "a dog playing
+outside", the best text hit was an unrelated PDF (cosine 0.64) and it tied with the best
+dog photo (CLIP 0.31). Images carry no text, so the text list only held noise. Each
+signal's RRF term is now multiplied by a 0..1 confidence from its raw score (a linear
+ramp between a "noise" and a "clearly relevant" level measured on this data). BM25 is
+supporting evidence only: it can raise assets that another signal found, but can't add
+new ones, because shared words alone ("playing", "kitchen") are weak evidence.
+The evaluation compares plain and gated fusion (evaluation/README.md).
 
 Query intent: words like "videos", "photos" or "brochures" give a soft boost to that
 file type. It's a boost rather than a filter, so a strong match of another type can
@@ -27,9 +36,10 @@ from .keyword import keyword_search
 
 RRF_K = 60
 WEIGHTS = {"visual": 1.0, "text": 1.0, "keyword": 0.6}
-# Below these similarities a hit is treated as noise and not used as evidence.
-MIN_VISUAL_SCORE = 0.20
-MIN_TEXT_SCORE = 0.55
+# (noise, clearly-relevant) cosine levels per embedding signal, read off the score
+# distributions of relevant vs unrelated results. Below `noise` a hit is dropped;
+# between the two, its RRF contribution ramps up linearly.
+CONFIDENCE_RANGE = {"visual": (0.20, 0.27), "text": (0.60, 0.72)}
 CANDIDATES = 300
 INTENT_BOOST = 1.5
 
@@ -60,15 +70,15 @@ def _group_best(points, min_score: float) -> list[dict]:
 
 def retrieve(query: str, mode: str, file_types: list[str] | None) -> dict[str, list[dict]]:
     lists: dict[str, list[dict]] = {}
-    if mode in ("hybrid", "visual"):
+    if mode in ("hybrid", "hybrid_plain", "visual"):
         vec = embeddings.embed_clip_text(query)
         lists["visual"] = _group_best(vector_store.search(vector_store.VISUAL, vec, CANDIDATES, file_types),
-                                      MIN_VISUAL_SCORE)
-    if mode in ("hybrid", "text"):
+                                      CONFIDENCE_RANGE["visual"][0])
+    if mode in ("hybrid", "hybrid_plain", "text"):
         vec = embeddings.embed_query_text(query)
         lists["text"] = _group_best(vector_store.search(vector_store.TEXT, vec, CANDIDATES, file_types),
-                                    MIN_TEXT_SCORE)
-    if mode in ("hybrid", "keyword"):
+                                    CONFIDENCE_RANGE["text"][0])
+    if mode in ("hybrid", "hybrid_plain", "keyword"):
         seen, kw = set(), []
         for hit in keyword_search(query, CANDIDATES):
             if hit["asset_id"] not in seen:          # already sorted best-first
@@ -78,17 +88,31 @@ def retrieve(query: str, mode: str, file_types: list[str] | None) -> dict[str, l
     return lists
 
 
-def fuse(lists: dict[str, list[dict]], intent: set[str], types_by_asset: dict[int, str]) -> list[dict]:
+def confidence(signal: str, score: float) -> float:
+    if signal not in CONFIDENCE_RANGE:
+        return 1.0
+    low, high = CONFIDENCE_RANGE[signal]
+    return min(1.0, max(0.0, (score - low) / (high - low)))
+
+
+def fuse(lists: dict[str, list[dict]], intent: set[str], types_by_asset: dict[int, str],
+         gated: bool = True) -> list[dict]:
     fused: dict[int, dict] = defaultdict(lambda: {"score": 0.0, "matches": {}})
-    for signal, hits in lists.items():
-        for rank, hit in enumerate(hits, start=1):
-            entry = fused[hit["asset_id"]]
-            entry["score"] += WEIGHTS[signal] / (RRF_K + rank)
+    primary = [s for s in lists if s != "keyword"]
+    for signal in primary + (["keyword"] if "keyword" in lists else []):
+        for rank, hit in enumerate(lists[signal], start=1):
+            aid = hit["asset_id"]
+            if gated and signal == "keyword" and primary and aid not in fused:
+                continue   # keyword only supports assets another signal already found
+            conf = confidence(signal, hit["score"]) if gated else 1.0
+            entry = fused[aid]
+            entry["score"] += conf * WEIGHTS[signal] / (RRF_K + rank)
             entry["matches"][signal] = {**hit, "rank": rank}
     for aid, entry in fused.items():
         if intent and types_by_asset.get(aid) in intent:
             entry["score"] *= INTENT_BOOST
-    return sorted(({"asset_id": aid, **e} for aid, e in fused.items()), key=lambda x: x["score"], reverse=True)
+    return sorted(({"asset_id": aid, **e} for aid, e in fused.items() if e["score"] > 0),
+                  key=lambda x: x["score"], reverse=True)
 
 
 def search(query: str, *, mode: str = "hybrid", file_types: list[str] | None = None,
@@ -101,7 +125,8 @@ def search(query: str, *, mode: str = "hybrid", file_types: list[str] | None = N
 
     candidate_ids = {h["asset_id"] for hits in lists.values() for h in hits}
     assets = _load_assets(candidate_ids)
-    ranked = fuse(lists, intent, {aid: a["file_type"] for aid, a in assets.items()})
+    ranked = fuse(lists, intent, {aid: a["file_type"] for aid, a in assets.items()},
+                  gated=(mode != "hybrid_plain"))   # hybrid_plain = ungated RRF, kept for evaluation
 
     results = []
     for r in ranked:

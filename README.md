@@ -10,6 +10,17 @@ Everything runs locally on a CPU-only laptop with free, open-source models.
 - **Dataset summary:** [docs/DATASET.md](docs/DATASET.md)
 - **Search evaluation:** [evaluation/README.md](evaluation/README.md) (method and findings) · [evaluation/results.md](evaluation/results.md) (raw results)
 
+## Results at a glance
+
+| | |
+|---|---|
+| Dataset | 2,026 files, 3.1 GB: 1,699 images, 198 videos, 126 PDFs (+ planted duplicates, corrupted and unsupported files) |
+| Indexed | 2,005 unique assets; 15 duplicates linked, 3 corrupted files failed with reasons, 3 unsupported files recorded |
+| First full index | 39 min on a CPU-only laptop |
+| Re-run with no changes | **1 second** (2,023 files skipped without re-hashing) |
+| Search quality (14 test queries) | **P@5 0.89 · P@10 0.89 · MRR 0.96**; the first result is relevant for 13 of 14 queries |
+| Search latency | about 0.15–0.2 s per query (the first query after startup is about 0.6 s while models warm up) |
+
 ---
 
 ## How it works (short version)
@@ -25,8 +36,9 @@ A search runs **three retrievers**:
 - **Text meaning:** BGE embeddings over the extracted text.
 - **Keyword:** BM25 over the extracted text.
 
-They're merged with **Reciprocal Rank Fusion**. Each result shows *why* it matched and opens at the matching
-video timestamp or PDF page.
+They're merged with **confidence-gated Reciprocal Rank Fusion**. The gating was added after the evaluation showed
+that plain RRF let weak text matches crowd out strong visual ones. Each result shows *why* it matched and opens at
+the matching video timestamp or PDF page.
 
 Metadata, job state and full-text search live in **SQLite**; vectors live in **Qdrant** (embedded mode, no server).
 
@@ -38,7 +50,8 @@ Metadata, job state and full-text search live in **SQLite**; vectors live in **Q
 | Basic metadata (name, type, size, location, …) | `files` + `assets` tables (`app/db.py`); resolution, duration and page count too |
 | AI understanding of content | CLIP (visual), Whisper (speech), OCR, BGE text embeddings |
 | Natural-language / semantic search | `app/search/hybrid.py` |
-| Ranked by relevance | Reciprocal Rank Fusion of three retrievers, with a soft boost for query intent ("videos", "brochures") |
+| Ranked by relevance | Confidence-gated rank fusion of three retrievers, with a soft boost for query intent ("videos", "brochures") |
+| Search quality checked | 14 labelled test queries, 5 retrieval modes compared (`evaluation/`) |
 | Preview images and documents | UI modal: image viewer, video player (seeks to the matched moment), PDF viewer (opens the matched page) |
 | Locate the original file | Full path, "Show in folder" (opens Explorer with the file selected), "Copy path" |
 | Filters | File type, folder, size, video duration; retrieval mode (for comparing signals) |
@@ -72,15 +85,19 @@ Run these from the repo root:
 
 ```bash
 # Configuration
-cp .env.example .env            # Windows PowerShell: Copy-Item .env.example .env
+cp .env.example .env
 
-# Backend
+# Backend (Python virtual environment)
 python -m venv backend/.venv
-backend/.venv/Scripts/python -m pip install -r backend/requirements.txt     # macOS/Linux: backend/.venv/bin/python
+backend/.venv/Scripts/python -m pip install -r backend/requirements.txt
 
 # Frontend (built once, then served by the backend)
-cd frontend && npm install && npm run build && cd ..
+npm --prefix frontend install
+npm --prefix frontend run build
 ```
+
+> Commands are written for Windows (PowerShell, cmd or Git Bash). On macOS/Linux, replace
+> `backend/.venv/Scripts/python` with `backend/.venv/bin/python` everywhere.
 
 ### 3. Get media
 
@@ -112,7 +129,7 @@ backend/.venv/Scripts/python -m uvicorn app.main:app --app-dir backend --port 80
 Open **http://localhost:8000**. Go to **Indexing**, click **Scan & index changes**, and watch the progress.
 Then search from the **Search** tab. Search works while indexing runs; results fill in as assets complete.
 
-**Frontend dev mode** (optional, hot reload): keep the backend running and use `cd frontend && npm run dev`, then open http://localhost:5173.
+**Frontend dev mode** (optional, hot reload): keep the backend running, run `npm --prefix frontend run dev`, then open http://localhost:5173.
 
 ### 6. Evaluate search quality (optional)
 
@@ -175,13 +192,19 @@ Interactive docs: http://localhost:8000/docs
 
 ## Known limitations
 
-- **Dataset about 2.5 GB, not 5–10 GB.** The limit was CPU-only indexing time and a same-day deadline, not the design.
-  Processing time grows with the number of files (about 0.3 s per image and a few seconds per video on this laptop), not with gigabytes.
-- **Stock videos rarely contain speech**, so the transcript signal is only exercised on a few clips. "Testimonial"
+- **Dataset is 3.1 GB, not 5–10 GB.** The limit was CPU-only indexing time and a same-day deadline, not the design.
+  Processing time grows with the number of files and video minutes (about 0.2 s per image and 3–25 s per video on this laptop),
+  not with gigabytes. See [docs/DATASET.md](docs/DATASET.md) for timings and how a larger set would behave.
+- **Stock videos rarely contain speech** (3 of 195), so the transcript signal is barely exercised. "Testimonial"
   queries rely mostly on the visual match (a person talking to the camera).
+- **Genre words dominate some document queries.** "Tourism brochure" also returns car brochures, because "brochure"
+  matches the type of document rather than its topic (see the evaluation write-up).
+- **PDF text can leak into photo queries.** A PDF that talks about living rooms can rank among living-room photos.
 - **CLIP ViT-B/32 is a small model.** It struggles with counting, fine-grained attributes ("a *red* car next to a *blue* one"),
   negation ("no people"), and text inside images unless `OCR_IMAGES` is on.
-- **PDF understanding is text-first.** Only the first 3 pages are embedded visually, and only the first 60 pages are read.
+- **PDF understanding is text-first.** Only the first 3 pages are embedded visually, only the first 60 pages are read,
+  and OCR runs on at most 4 scanned pages per document.
+- **Ranking thresholds were tuned on the same queries they're evaluated on**, so the scores are somewhat optimistic.
 - **Embedded Qdrant does exact (brute-force) search.** That's fine at this scale (tens of thousands of vectors) but not for millions.
 - **Single indexing worker** inside the API process (embedded Qdrant allows only one process).
 - **Evaluation labels are "silver standard"**, derived from the source query each file was downloaded with. See the evaluation write-up.

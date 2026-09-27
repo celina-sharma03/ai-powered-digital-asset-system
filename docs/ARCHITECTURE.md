@@ -61,7 +61,8 @@ search can group hits back to assets and open the preview at the matching moment
    - **Image:** decode and verify, EXIF-orient, CLIP embedding, optional OCR and caption.
    - **Video:** ffprobe, evenly spaced keyframes (every 5 s, 4–12 per video, mid-segment), near-duplicate
      frames dropped (cosine > 0.95), Whisper transcript of the first 3 minutes of audio in 30-second windows.
-   - **PDF:** text layer per page (first 60 pages), OCR for pages without text, CLIP embedding of the first 3 page renders.
+   - **PDF:** text layer per page (first 60 pages), OCR for pages without text (at most 4 per document), CLIP
+     embedding of the first 3 page renders.
 6. **Store.** Old vectors for the asset are deleted, then new ones written (idempotent). Status becomes `indexed`,
    or `partial` if an optional stage failed, or `failed` with the reason.
 
@@ -70,11 +71,15 @@ search can group hits back to assets and open the preview at the matching moment
 1. **Intent.** Words like "videos", "photos" or "brochures" give that type a soft boost (×1.5). Explicit UI filters
    are hard filters.
 2. **Three retrievers** (top 300 candidates each, grouped to the best hit per asset):
-   - *visual*: CLIP text embedding against image, frame and page vectors (min cosine 0.20)
-   - *text*: BGE query embedding against text chunks (min cosine 0.55)
+   - *visual*: CLIP text embedding against image, frame and page vectors (hits below cosine 0.20 dropped)
+   - *text*: BGE query embedding against text chunks (hits below cosine 0.60 dropped)
    - *keyword*: BM25 over the same text (stop-words and type words removed)
-3. **Reciprocal Rank Fusion:** `score = Σ weight / (60 + rank)`, with weights visual 1.0, text 1.0, keyword 0.6.
-   Ranks are comparable across models whose raw scores are not.
+3. **Confidence-gated Reciprocal Rank Fusion:** `score = Σ confidence × weight / (60 + rank)`.
+   - Rank handles the different score scales across models.
+   - The confidence (0–1, a ramp over the raw score: CLIP 0.20→0.27, BGE 0.60→0.72) stops a weak #1 in one list
+     from counting as much as a strong #1 in another.
+   - BM25 only boosts assets that a semantic signal already found.
+   - The evaluation motivated this: plain RRF gave P@5 0.41, gated fusion gives 0.89. See `evaluation/README.md`.
 4. **Filters** (type, folder, size, duration) and removal of assets with no file left on disk.
 5. **Response** per asset: why it matched (each signal's rank, score and snippet), where to jump
    (timestamp or page), all duplicate paths.
@@ -98,7 +103,7 @@ search can group hits back to assets and open the preview at the matching moment
 | Support a new file type (e.g. `.docx`) | Add a processor that returns `Extracted` (see `indexing/pdf.py`), register its extensions in `indexing/types.py` and the function in `PROCESSORS` in `indexing/pipeline.py` |
 | Swap the visual model (e.g. SigLIP) | `CLIP_MODEL` in `.env` + `clip_dim()` in `ai/embeddings.py`. Delete `storage/` (vector size changes) or bump `PIPELINE_VERSION` |
 | Sample video frames differently | `.env` `VIDEO_*` settings, or `frame_timestamps()` in `indexing/video.py` |
-| Tune ranking | `WEIGHTS`, `MIN_*_SCORE`, `INTENT_BOOST` at the top of `search/hybrid.py`, then re-run `scripts/evaluate.py` |
+| Tune ranking | `WEIGHTS`, `CONFIDENCE_RANGE`, `INTENT_BOOST` at the top of `search/hybrid.py`, then re-run `scripts/evaluate.py` |
 | Add a filter (e.g. date) | Query param in `main.py` → `_passes_filters()` in `search/hybrid.py` → a control in `SearchView.jsx` |
 | Re-process everything after a logic change | Bump `PIPELINE_VERSION` in `config.py`; the next run reprocesses only outdated assets |
 | Enable AI captions | `.env`: `CAPTION_PROVIDER=groq`, `GROQ_API_KEY=…` |
@@ -115,6 +120,7 @@ search can group hits back to assets and open the preview at the matching moment
 - **Qdrant embedded.** Real vector DB features (payload filters, deletes, persistence) with zero infrastructure.
   Switching to a Qdrant server is a one-line change.
 - **SQLite as the source of truth.** Transactions, crash safety and FTS5 in the standard library, with a single file.
-- **RRF fusion.** Scores from different models aren't comparable. Ranks are.
+- **Gated RRF fusion.** Scores from different models aren't comparable, but ranks are. Each rank is then weighted
+  by how confident that signal is, measured rather than assumed.
 - **Captions optional.** Free API tiers are rate-limited, and local vision-language models are too slow for a
   CPU-only laptop. The system is fully functional without them.

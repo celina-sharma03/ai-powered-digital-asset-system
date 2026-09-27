@@ -48,7 +48,7 @@ def search(
     max_size: int | None = None,
     min_duration: float | None = None,
     max_duration: float | None = None,
-    mode: str = Query("hybrid", pattern="^(hybrid|visual|text|keyword)$"),
+    mode: str = Query("hybrid", pattern="^(hybrid|hybrid_plain|visual|text|keyword)$"),
     limit: int = Query(24, ge=1, le=100),
 ):
     return hybrid.search(q, mode=mode, file_types=type, folder=folder, min_size=min_size, max_size=max_size,

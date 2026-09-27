@@ -1,0 +1,19 @@
+{
+  "_comment": "Manual relevance judgments that overrule the automatic source-query labels, after looking at the actual files. 1 = relevant, 0 = not relevant. Only clear-cut cases are listed.",
+  "q03": {
+    "_why": "Home-design books were downloaded under the 'architecture plan' label but are about residential houses; 'estate' car brochures were caught by the 'real estate brochure' download query; a plaza design guide is not residential.",
+    "archive-TheBookOfBrickHomes-DesignsAndFloorPlansFor37AttractivePractical.pdf": 1,
+    "archive-TheBookOfNewHomesDesignsAndFloorPlansFor43PracticalHomes.pdf": 1,
+    "archive-SelectedSmallHomesDesignsAndFloorPlansForTwenty-threeSmallHomes.pdf": 1,
+    "archive-TheBookOfEasyToBuildHomesDesignsAndFloorPlansFor24Easy-to-build.pdf": 1,
+    "archive-TheBookOfExpandableHomesDesignsAndFloorPlansFor18PracticalHomes.pdf": 1,
+    "archive-twentyfourcrafts00stic.pdf": 1,
+    "archive-publicspacemoder00walt.pdf": 0,
+    "archive-c5estate_specs.pdf": 0,
+    "archive-peugeot406estatebrochure2002.pdf": 0
+  },
+  "q14": {
+    "_why": "Checked the keyframe: two people at a meeting table in an office (downloaded under the 'testimonial interview' label).",
+    "pexels-video-5438897.mp4": 1
+  }
+}

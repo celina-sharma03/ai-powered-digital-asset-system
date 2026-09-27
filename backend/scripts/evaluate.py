@@ -31,7 +31,7 @@ from app.config import settings  # noqa: E402
 
 EVAL_DIR = REPO_ROOT / "evaluation"
 API = "http://127.0.0.1:8000"
-MODES = ["hybrid", "visual", "text", "keyword"]
+MODES = ["hybrid", "hybrid_plain", "visual", "text", "keyword"]
 TOP_K = 20
 
 
