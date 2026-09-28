@@ -18,7 +18,7 @@
           "metrics": {
             "P@5": 1.0,
             "P@10": 1.0,
-            "R@20": 0.15,
+            "R@20": 0.16666666666666666,
             "MRR": 1.0
           },
           "top": [
@@ -486,7 +486,7 @@
           "metrics": {
             "P@5": 1.0,
             "P@10": 1.0,
-            "R@20": 0.4166666666666667,
+            "R@20": 0.4444444444444444,
             "MRR": 1.0
           },
           "top": [
@@ -594,10 +594,10 @@
         },
         "hybrid_plain": {
           "metrics": {
-            "P@5": 0.4,
-            "P@10": 0.7,
-            "R@20": 0.3888888888888889,
-            "MRR": 0.25
+            "P@5": 0.2,
+            "P@10": 0.6,
+            "R@20": 0.3333333333333333,
+            "MRR": 0.2
           },
           "top": [
             {
@@ -618,6 +618,18 @@
               "relevant": false,
               "source_query": "product catalogue",
               "title": "Illustrated catalogue and price list of the Eastman Dry Plate and Film Company, ",
+              "signals": [
+                "visual",
+                "text",
+                "keyword"
+              ]
+            },
+            {
+              "filename": "EventSphere_BTech_Report.pdf",
+              "type": "pdf",
+              "relevant": false,
+              "source_query": "?",
+              "title": "",
               "signals": [
                 "visual",
                 "text",
@@ -687,16 +699,6 @@
             },
             {
               "filename": "pexels-video-8689887.mp4",
-              "type": "video",
-              "relevant": true,
-              "source_query": "person talking to camera",
-              "title": "",
-              "signals": [
-                "visual"
-              ]
-            },
-            {
-              "filename": "pexels-video-7643836.mp4",
               "type": "video",
               "relevant": true,
               "source_query": "person talking to camera",
@@ -834,26 +836,6 @@
               "signals": [
                 "text"
               ]
-            },
-            {
-              "filename": "archive-illustratedcatal00eastuoft.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "product catalogue",
-              "title": "Illustrated catalogue and price list of the Eastman Dry Plate and Film Company, ",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-187222488-acxiom-consumer-data-products-catalog.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "product catalogue",
-              "title": "Acxiom Consumer Data Products Catalog",
-              "signals": [
-                "text"
-              ]
             }
           ]
         },
@@ -946,21 +928,21 @@
               ]
             },
             {
-              "filename": "archive-pocketguidecent00crof.pdf",
+              "filename": "EventSphere_BTech_Report.pdf",
               "type": "pdf",
               "relevant": false,
-              "source_query": "tourism brochure",
-              "title": "Pocket guide for the Centennial visitor",
+              "source_query": "?",
+              "title": "",
               "signals": [
                 "keyword"
               ]
             },
             {
-              "filename": "archive-ingallsillustrat00inga.pdf",
+              "filename": "archive-pocketguidecent00crof.pdf",
               "type": "pdf",
               "relevant": false,
-              "source_query": "product catalogue",
-              "title": "Ingalls' illustrated catalogue and special wholesale price list of stamped goods",
+              "source_query": "tourism brochure",
+              "title": "Pocket guide for the Centennial visitor",
               "signals": [
                 "keyword"
               ]
@@ -989,7 +971,7 @@
           "metrics": {
             "P@5": 0.8,
             "P@10": 0.9,
-            "R@20": 0.2962962962962963,
+            "R@20": 0.2777777777777778,
             "MRR": 1.0
           },
           "top": [
@@ -1040,17 +1022,6 @@
               ]
             },
             {
-              "filename": "archive-SelectedSmallHomesDesignsAndFloorPlansForTwenty-threeSmallHomes.pdf",
-              "type": "pdf",
-              "relevant": true,
-              "source_query": "architecture plan",
-              "title": "Selected small homes: designs and floor plans for twenty-three small homes",
-              "signals": [
-                "visual",
-                "text"
-              ]
-            },
-            {
               "filename": "archive-TheBookOfEasyToBuildHomesDesignsAndFloorPlansFor24Easy-to-build.pdf",
               "type": "pdf",
               "relevant": true,
@@ -1062,14 +1033,35 @@
               ]
             },
             {
-              "filename": "archive-twentyfourcrafts00stic.pdf",
+              "filename": "archive-SelectedSmallHomesDesignsAndFloorPlansForTwenty-threeSmallHomes.pdf",
               "type": "pdf",
               "relevant": true,
               "source_query": "architecture plan",
-              "title": "Twenty-four Craftsman houses, with floor plans.",
+              "title": "Selected small homes: designs and floor plans for twenty-three small homes",
               "signals": [
                 "visual",
-                "text",
+                "text"
+              ]
+            },
+            {
+              "filename": "archive-TheBookOfExpandableHomesDesignsAndFloorPlansFor18PracticalHomes.pdf",
+              "type": "pdf",
+              "relevant": true,
+              "source_query": "architecture plan",
+              "title": "The Book of Expandable Homes : Designs and Floor Plans for 18 Practical Homes",
+              "signals": [
+                "visual",
+                "text"
+              ]
+            },
+            {
+              "filename": "archive-ernest-and-esther-born-house.pdf",
+              "type": "pdf",
+              "relevant": true,
+              "source_query": "real estate brochure",
+              "title": "2020 The Great Highway: Ernest And Esther Born House Real Estate Brochure",
+              "signals": [
+                "visual",
                 "keyword"
               ]
             },
@@ -1094,17 +1086,6 @@
                 "visual",
                 "keyword"
               ]
-            },
-            {
-              "filename": "archive-ernest-and-esther-born-house.pdf",
-              "type": "pdf",
-              "relevant": true,
-              "source_query": "real estate brochure",
-              "title": "2020 The Great Highway: Ernest And Esther Born House Real Estate Brochure",
-              "signals": [
-                "visual",
-                "keyword"
-              ]
             }
           ]
         },
@@ -1112,7 +1093,7 @@
           "metrics": {
             "P@5": 0.8,
             "P@10": 0.8,
-            "R@20": 0.2777777777777778,
+            "R@20": 0.2962962962962963,
             "MRR": 1.0
           },
           "top": [
@@ -1580,9 +1561,9 @@
       "modes": {
         "hybrid": {
           "metrics": {
-            "P@5": 0.8,
-            "P@10": 0.9,
-            "R@20": 0.125,
+            "P@5": 1.0,
+            "P@10": 1.0,
+            "R@20": 0.1484375,
             "MRR": 1.0
           },
           "top": [
@@ -1604,17 +1585,6 @@
               "title": "Stylish modern minimalist living room with chic furniture and soft lighting.",
               "signals": [
                 "visual"
-              ]
-            },
-            {
-              "filename": "archive-TheBookOfExpandableHomesDesignsAndFloorPlansFor18PracticalHomes.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "architecture plan",
-              "title": "The Book of Expandable Homes : Designs and Floor Plans for 18 Practical Homes",
-              "signals": [
-                "text",
-                "keyword"
               ]
             },
             {
@@ -1683,6 +1653,16 @@
               "relevant": true,
               "source_query": "modern living room",
               "title": "Elegant living room with a stylish sofa and decor in a modern setting.",
+              "signals": [
+                "visual"
+              ]
+            },
+            {
+              "filename": "pexels-photo-32177961.jpg",
+              "type": "image",
+              "relevant": true,
+              "source_query": "modern living room",
+              "title": "Elegant modern living room design with neutral color palette, contemporary furni",
               "signals": [
                 "visual"
               ]
@@ -2159,7 +2139,7 @@
           "metrics": {
             "P@5": 1.0,
             "P@10": 1.0,
-            "R@20": 0.5757575757575758,
+            "R@20": 0.6060606060606061,
             "MRR": 1.0
           },
           "top": [
@@ -2267,7 +2247,7 @@
         },
         "hybrid_plain": {
           "metrics": {
-            "P@5": 0.2,
+            "P@5": 0.4,
             "P@10": 0.5,
             "R@20": 0.3939393939393939,
             "MRR": 0.25
@@ -2319,6 +2299,16 @@
               ]
             },
             {
+              "filename": "pexels-video-13569683.mp4",
+              "type": "video",
+              "relevant": true,
+              "source_query": "construction workers",
+              "title": "",
+              "signals": [
+                "visual"
+              ]
+            },
+            {
               "filename": "archive-publicspacemoder00walt.pdf",
               "type": "pdf",
               "relevant": false,
@@ -2327,16 +2317,6 @@
               "signals": [
                 "text",
                 "keyword"
-              ]
-            },
-            {
-              "filename": "pexels-video-13569683.mp4",
-              "type": "video",
-              "relevant": true,
-              "source_query": "construction workers",
-              "title": "",
-              "signals": [
-                "visual"
               ]
             },
             {
@@ -2539,56 +2519,6 @@
               "signals": [
                 "text"
               ]
-            },
-            {
-              "filename": "archive-schoolarchitectu00geor.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "architecture plan",
-              "title": "School architecture; plans and suggestions for building one, two, three, and fou",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-sketchesinarchit00dear.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "architecture plan",
-              "title": "Sketches in architecture : consisting of original designs for cottages and rural",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-1967-pearson-speech-housing-urban-development-conf.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "housing project",
-              "title": "Opening Statement by the Prime Minister to the Federal-Provincial Conference on ",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-carborundumabrasiveproductscatalog981927.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "product catalogue",
-              "title": "The Carborundum Company : Abrasive Products : Catalog No. 98",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-criv_000157.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "real estate brochure",
-              "title": "Anza Realty Company Brochure",
-              "signals": [
-                "text"
-              ]
             }
           ]
         },
@@ -2671,6 +2601,16 @@
               ]
             },
             {
+              "filename": "EventSphere_BTech_Report.pdf",
+              "type": "pdf",
+              "relevant": false,
+              "source_query": "?",
+              "title": "",
+              "signals": [
+                "keyword"
+              ]
+            },
+            {
               "filename": "commons-98590090.pdf",
               "type": "pdf",
               "relevant": false,
@@ -2686,16 +2626,6 @@
               "relevant": false,
               "source_query": "tourism brochure",
               "title": "Visitor guide, Medicine Bow-Routt National Forests, Thunder Basin National Grass",
-              "signals": [
-                "keyword"
-              ]
-            },
-            {
-              "filename": "archive-publicspacemoder00walt.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "housing project",
-              "title": "Public space and modern architecture : design guidelines for the plazas surround",
               "signals": [
                 "keyword"
               ]
@@ -3196,23 +3126,12 @@
       "modes": {
         "hybrid": {
           "metrics": {
-            "P@5": 0.8,
-            "P@10": 0.9,
-            "R@20": 0.8333333333333334,
-            "MRR": 0.5
+            "P@5": 1.0,
+            "P@10": 1.0,
+            "R@20": 0.8888888888888888,
+            "MRR": 1.0
           },
           "top": [
-            {
-              "filename": "archive-zerolotlinedevel00rofk.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "housing project",
-              "title": "Zero lot line development : a housing strategy for the future",
-              "signals": [
-                "text",
-                "keyword"
-              ]
-            },
             {
               "filename": "pexels-video-12240430.mp4",
               "type": "video",
@@ -3295,6 +3214,16 @@
             },
             {
               "filename": "pexels-video-38874596.mp4",
+              "type": "video",
+              "relevant": true,
+              "source_query": "aerial view houses",
+              "title": "",
+              "signals": [
+                "visual"
+              ]
+            },
+            {
+              "filename": "pexels-video-29474056.mp4",
               "type": "video",
               "relevant": true,
               "source_query": "aerial view houses",
@@ -3395,22 +3324,22 @@
               ]
             },
             {
-              "filename": "archive-copy-of-bbcc-lucentia-residences-2019.pdf",
+              "filename": "archive-TheEarlyYearsOfTheLeighParkHousingEstate.pdf",
               "type": "pdf",
               "relevant": false,
-              "source_query": "residential apartments",
-              "title": "BBCC Lucentia Residences 2019 brochure",
+              "source_query": "housing project",
+              "title": "The Early Years of the Leigh Park Housing Estate",
               "signals": [
                 "text",
                 "keyword"
               ]
             },
             {
-              "filename": "archive-TheEarlyYearsOfTheLeighParkHousingEstate.pdf",
+              "filename": "archive-copy-of-bbcc-lucentia-residences-2019.pdf",
               "type": "pdf",
               "relevant": false,
-              "source_query": "housing project",
-              "title": "The Early Years of the Leigh Park Housing Estate",
+              "source_query": "residential apartments",
+              "title": "BBCC Lucentia Residences 2019 brochure",
               "signals": [
                 "text",
                 "keyword"
@@ -3606,46 +3535,6 @@
               "signals": [
                 "text"
               ]
-            },
-            {
-              "filename": "archive-copy-of-bbcc-lucentia-residences-2019.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "residential apartments",
-              "title": "BBCC Lucentia Residences 2019 brochure",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-BookOfRamblerAndRanch-typeHomesDesignsAndFloorPlansFor31Practical.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "architecture plan",
-              "title": "Book of rambler and ranch-type homes : designs and floor plans for 31 practical ",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-TheBookOfNewHomesDesignsAndFloorPlansFor43PracticalHomes.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "architecture plan",
-              "title": "The Book of New Homes: Designs and Floor Plans for 43 Practical Homes",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-SelectedSmallHomesFloorPlansForTwenty-fiveSmallHomes.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "architecture plan",
-              "title": "Selected small homes, floor plans for twenty-five small homes.",
-              "signals": [
-                "text"
-              ]
             }
           ]
         },
@@ -3678,21 +3567,21 @@
               ]
             },
             {
-              "filename": "archive-cu31924014088227.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "architecture plan",
-              "title": "Building plans and how to draw them; a simple series of practical lessons on arc",
-              "signals": [
-                "keyword"
-              ]
-            },
-            {
               "filename": "archive-TheEarlyYearsOfTheLeighParkHousingEstate.pdf",
               "type": "pdf",
               "relevant": false,
               "source_query": "housing project",
               "title": "The Early Years of the Leigh Park Housing Estate",
+              "signals": [
+                "keyword"
+              ]
+            },
+            {
+              "filename": "archive-cu31924014088227.pdf",
+              "type": "pdf",
+              "relevant": false,
+              "source_query": "architecture plan",
+              "title": "Building plans and how to draw them; a simple series of practical lessons on arc",
               "signals": [
                 "keyword"
               ]
@@ -3713,6 +3602,16 @@
               "relevant": false,
               "source_query": "housing project",
               "title": "Desegregation in 3D: Displacement, Dispersal and Development in American Public ",
+              "signals": [
+                "keyword"
+              ]
+            },
+            {
+              "filename": "EventSphere_BTech_Report.pdf",
+              "type": "pdf",
+              "relevant": false,
+              "source_query": "?",
+              "title": "",
               "signals": [
                 "keyword"
               ]
@@ -3743,16 +3642,6 @@
               "relevant": false,
               "source_query": "architecture plan",
               "title": "Book of rambler and ranch-type homes : designs and floor plans for 31 practical ",
-              "signals": [
-                "keyword"
-              ]
-            },
-            {
-              "filename": "archive-mackinacunderthr00mack.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "tourism brochure",
-              "title": "Mackinac under three flags : tourist guide and history",
               "signals": [
                 "keyword"
               ]
@@ -4121,16 +4010,6 @@
               "relevant": false,
               "source_query": "tourism brochure",
               "title": "Tourism studies learning resource guide",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-pocketguidecent00crof.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "tourism brochure",
-              "title": "Pocket guide for the Centennial visitor",
               "signals": [
                 "text"
               ]
@@ -4829,14 +4708,13 @@
               ]
             },
             {
-              "filename": "archive-TheBookOfNewHomesDesignsAndFloorPlansFor43PracticalHomes.pdf",
-              "type": "pdf",
+              "filename": "pexels-photo-31467781.jpg",
+              "type": "image",
               "relevant": false,
-              "source_query": "architecture plan",
-              "title": "The Book of New Homes: Designs and Floor Plans for 43 Practical Homes",
+              "source_query": "kitchen interior",
+              "title": "A warm kitchen setting with colorful oven mitts and stainless steel pots.",
               "signals": [
-                "text",
-                "keyword"
+                "visual"
               ]
             }
           ]
@@ -5107,66 +4985,6 @@
               "signals": [
                 "text"
               ]
-            },
-            {
-              "filename": "archive-ernest-and-esther-born-house.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "real estate brochure",
-              "title": "2020 The Great Highway: Ernest And Esther Born House Real Estate Brochure",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-tohyang00sf.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "restaurant menu",
-              "title": "To Hyang Korean Restaurant Menu",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-rhoda01chang.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "restaurant menu",
-              "title": "Harbin Shanghai Restaurant Menu",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-ERIC_ED081087.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "residential apartments",
-              "title": "ERIC ED081087: [Division I, Living-Learning Residences: Dag Hammarskjold College",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-leehou00sf.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "restaurant menu",
-              "title": "Lee Hou Chinese Restaurant Menu",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-copy-of-bbcc-lucentia-residences-2019.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "residential apartments",
-              "title": "BBCC Lucentia Residences 2019 brochure",
-              "signals": [
-                "text"
-              ]
             }
           ]
         },
@@ -5298,8 +5116,8 @@
       "modes": {
         "hybrid": {
           "metrics": {
-            "P@5": 0.8,
-            "P@10": 0.9,
+            "P@5": 1.0,
+            "P@10": 1.0,
             "R@20": 0.16521739130434782,
             "MRR": 1.0
           },
@@ -5322,18 +5140,6 @@
               "title": "Modern skyscrapers glowing at night, reflected in the waterfront's serene water.",
               "signals": [
                 "visual"
-              ]
-            },
-            {
-              "filename": "archive-copy-of-bbcc-lucentia-residences-2019.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "residential apartments",
-              "title": "BBCC Lucentia Residences 2019 brochure",
-              "signals": [
-                "visual",
-                "text",
-                "keyword"
               ]
             },
             {
@@ -5402,6 +5208,16 @@
               "relevant": true,
               "source_query": "city skyline night",
               "title": "Nighttime Toronto skyline featuring CN Tower over Lake Ontario with city lights.",
+              "signals": [
+                "visual"
+              ]
+            },
+            {
+              "filename": "pexels-photo-18353682.jpg",
+              "type": "image",
+              "relevant": true,
+              "source_query": "city skyline night",
+              "title": "Vibrant nighttime cityscape with illuminated skyscrapers reflecting on the calm ",
               "signals": [
                 "visual"
               ]
@@ -5671,26 +5487,6 @@
               "signals": [
                 "text"
               ]
-            },
-            {
-              "filename": "archive-TheEarlyYearsOfTheLeighParkHousingEstate.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "housing project",
-              "title": "The Early Years of the Leigh Park Housing Estate",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-ernest-and-esther-born-house.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "real estate brochure",
-              "title": "2020 The Great Highway: Ernest And Esther Born House Real Estate Brochure",
-              "signals": [
-                "text"
-              ]
             }
           ]
         },
@@ -5823,17 +5619,17 @@
         "hybrid": {
           "metrics": {
             "P@5": 0.8,
-            "P@10": 0.7,
+            "P@10": 0.6,
             "R@20": 0.6666666666666666,
             "MRR": 1.0
           },
           "top": [
             {
-              "filename": "archive-broadeningperspe00afs.pdf",
+              "filename": "archive-annualreportsta10assegoog.pdf",
               "type": "pdf",
               "relevant": true,
               "source_query": "annual report",
-              "title": "Broadening Perspectives, Exploring Opportunities; Annual Report 2009",
+              "title": "Annual report of the State Board of Assessors of the State of New Jersey",
               "signals": [
                 "visual",
                 "text",
@@ -5841,11 +5637,11 @@
               ]
             },
             {
-              "filename": "archive-annualreportsta10assegoog.pdf",
+              "filename": "archive-broadeningperspe00afs.pdf",
               "type": "pdf",
               "relevant": true,
               "source_query": "annual report",
-              "title": "Annual report of the State Board of Assessors of the State of New Jersey",
+              "title": "Broadening Perspectives, Exploring Opportunities; Annual Report 2009",
               "signals": [
                 "visual",
                 "text",
@@ -5911,6 +5707,17 @@
               ]
             },
             {
+              "filename": "archive-interpol-brochure-assessing-crimes-against-cultural-property-2021.pdf",
+              "type": "pdf",
+              "relevant": false,
+              "source_query": "real estate brochure",
+              "title": "Interpol Brochure - Assessing crimes against cultural property: 02021",
+              "signals": [
+                "visual",
+                "keyword"
+              ]
+            },
+            {
               "filename": "archive-annualreportaud03deptgoog.pdf",
               "type": "pdf",
               "relevant": true,
@@ -5923,25 +5730,13 @@
               ]
             },
             {
-              "filename": "archive-interpol-brochure-assessing-crimes-against-cultural-property-2021.pdf",
+              "filename": "archive-zerolotlinedevel00rofk.pdf",
               "type": "pdf",
               "relevant": false,
-              "source_query": "real estate brochure",
-              "title": "Interpol Brochure - Assessing crimes against cultural property: 02021",
+              "source_query": "housing project",
+              "title": "Zero lot line development : a housing strategy for the future",
               "signals": [
                 "visual",
-                "keyword"
-              ]
-            },
-            {
-              "filename": "archive-annualreport1967phil.pdf",
-              "type": "pdf",
-              "relevant": true,
-              "source_query": "annual report",
-              "title": "Annual report, 1967",
-              "signals": [
-                "visual",
-                "text",
                 "keyword"
               ]
             }
@@ -5980,18 +5775,6 @@
               ]
             },
             {
-              "filename": "archive-annualreportsta09offigoog.pdf",
-              "type": "pdf",
-              "relevant": true,
-              "source_query": "annual report",
-              "title": "Annual Report of the State Treasurer",
-              "signals": [
-                "visual",
-                "text",
-                "keyword"
-              ]
-            },
-            {
               "filename": "archive-187222488-acxiom-consumer-data-products-catalog.pdf",
               "type": "pdf",
               "relevant": false,
@@ -6009,6 +5792,18 @@
               "relevant": true,
               "source_query": "annual report",
               "title": "Annual Report on the Statistics of Manufactures ...",
+              "signals": [
+                "visual",
+                "text",
+                "keyword"
+              ]
+            },
+            {
+              "filename": "archive-annualreportsta09offigoog.pdf",
+              "type": "pdf",
+              "relevant": true,
+              "source_query": "annual report",
+              "title": "Annual Report of the State Treasurer",
               "signals": [
                 "visual",
                 "text",
@@ -6081,7 +5876,7 @@
           "metrics": {
             "P@5": 0.8,
             "P@10": 0.4,
-            "R@20": 0.3333333333333333,
+            "R@20": 0.4166666666666667,
             "MRR": 1.0
           },
           "top": [
@@ -6190,8 +5985,8 @@
         "text": {
           "metrics": {
             "P@5": 0.8,
-            "P@10": 0.6,
-            "R@20": 0.5,
+            "P@10": 0.5,
+            "R@20": 0.4166666666666667,
             "MRR": 1.0
           },
           "top": [
@@ -6261,36 +6056,6 @@
               "relevant": false,
               "source_query": "residential apartments",
               "title": "BBCC Lucentia Residences 2019 brochure",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-annualreportsta09offigoog.pdf",
-              "type": "pdf",
-              "relevant": true,
-              "source_query": "annual report",
-              "title": "Annual Report of the State Treasurer",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-GoetzDesegregationIn3D.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "housing project",
-              "title": "Desegregation in 3D: Displacement, Dispersal and Development in American Public ",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-TheBookOfNewHomesDesignsAndFloorPlansFor43PracticalHomes.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "architecture plan",
-              "title": "The Book of New Homes: Designs and Floor Plans for 43 Practical Homes",
               "signals": [
                 "text"
               ]
@@ -6426,8 +6191,8 @@
         "hybrid": {
           "metrics": {
             "P@5": 0.6,
-            "P@10": 0.5,
-            "R@20": 0.5,
+            "P@10": 0.4,
+            "R@20": 0.35714285714285715,
             "MRR": 1.0
           },
           "top": [
@@ -6501,51 +6266,43 @@
               ]
             },
             {
-              "filename": "archive-broadeningperspe00afs.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "annual report",
-              "title": "Broadening Perspectives, Exploring Opportunities; Annual Report 2009",
-              "signals": [
-                "visual",
-                "text",
-                "keyword"
-              ]
-            },
-            {
-              "filename": "archive-cihm_83577.pdf",
-              "type": "pdf",
-              "relevant": true,
-              "source_query": "tourism brochure",
-              "title": "The Canadian in Italy [microform] : being a pocket interpreter and guide to Ital",
-              "signals": [
-                "visual",
-                "text",
-                "keyword"
-              ]
-            },
-            {
-              "filename": "archive-peugeot406estatebrochure2002.pdf",
+              "filename": "archive-cpv_000001.pdf",
               "type": "pdf",
               "relevant": false,
               "source_query": "real estate brochure",
-              "title": "Peugeot 406 Estate Brochure (2002)",
+              "title": "[Telling the colorful story of Palos Verdes Estates brochure series: yellow (two",
               "signals": [
-                "visual",
-                "text",
-                "keyword"
+                "visual"
               ]
             },
             {
-              "filename": "archive-publicspacemoder00walt.pdf",
+              "filename": "archive-taiwanrestaurant00sf.pdf",
               "type": "pdf",
               "relevant": false,
-              "source_query": "housing project",
-              "title": "Public space and modern architecture : design guidelines for the plazas surround",
+              "source_query": "restaurant menu",
+              "title": "Taiwan Restaurant Distinctive Chinese Cuisine Menu",
               "signals": [
-                "visual",
-                "text",
-                "keyword"
+                "visual"
+              ]
+            },
+            {
+              "filename": "commons-98590094.pdf",
+              "type": "pdf",
+              "relevant": false,
+              "source_query": "real estate brochure",
+              "title": "File:\"Palos Verdes The New City Has Millions Behind It\" (IA cpv 000028).pdf",
+              "signals": [
+                "visual"
+              ]
+            },
+            {
+              "filename": "archive-copy-of-bbcc-lucentia-residences-2019.pdf",
+              "type": "pdf",
+              "relevant": false,
+              "source_query": "residential apartments",
+              "title": "BBCC Lucentia Residences 2019 brochure",
+              "signals": [
+                "visual"
               ]
             }
           ]
@@ -6794,7 +6551,7 @@
           "metrics": {
             "P@5": 1.0,
             "P@10": 0.5,
-            "R@20": 0.5,
+            "R@20": 0.35714285714285715,
             "MRR": 1.0
           },
           "top": [
@@ -6844,56 +6601,6 @@
               "relevant": true,
               "source_query": "tourism brochure",
               "title": "The Canadian in Italy [microform] : being a pocket interpreter and guide to Ital",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-interpol-brochure-assessing-crimes-against-cultural-property-02020.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "real estate brochure",
-              "title": "Interpol brochure - Assessing crimes against cultural property: 02020",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-6432093-Trump-Estate-Brochure-LR-FINAL.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "real estate brochure",
-              "title": "Aberdeen Scotland Trump Estate Brochure LR FINAL Sept 2019",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-187222488-acxiom-consumer-data-products-catalog.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "product catalogue",
-              "title": "Acxiom Consumer Data Products Catalog",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-renault-clio-iv-estate-brochure-2015.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "real estate brochure",
-              "title": "Renault Clio IV Estate Brochure (2015)",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-publicspacemoder00walt.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "housing project",
-              "title": "Public space and modern architecture : design guidelines for the plazas surround",
               "signals": [
                 "text"
               ]
@@ -7032,7 +6739,7 @@
           "metrics": {
             "P@5": 1.0,
             "P@10": 0.9,
-            "R@20": 0.11724137931034483,
+            "R@20": 0.12413793103448276,
             "MRR": 1.0
           },
           "top": [
@@ -7390,36 +7097,6 @@
               "signals": [
                 "text"
               ]
-            },
-            {
-              "filename": "archive-schoolarchitectu00geor.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "architecture plan",
-              "title": "School architecture; plans and suggestions for building one, two, three, and fou",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-tourismstudiesle00albe.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "tourism brochure",
-              "title": "Tourism studies learning resource guide",
-              "signals": [
-                "text"
-              ]
-            },
-            {
-              "filename": "archive-ERIC_ED081087.pdf",
-              "type": "pdf",
-              "relevant": false,
-              "source_query": "residential apartments",
-              "title": "ERIC ED081087: [Division I, Living-Learning Residences: Dag Hammarskjold College",
-              "signals": [
-                "text"
-              ]
             }
           ]
         },
@@ -7512,21 +7189,21 @@
               ]
             },
             {
-              "filename": "archive-publichousingpop00hsuc.pdf",
+              "filename": "EventSphere_BTech_Report.pdf",
               "type": "pdf",
               "relevant": false,
-              "source_query": "housing project",
-              "title": "Public housing, population redistribution, and urban development in Singapore",
+              "source_query": "?",
+              "title": "",
               "signals": [
                 "keyword"
               ]
             },
             {
-              "filename": "archive-universityclubof00univ.pdf",
+              "filename": "archive-publichousingpop00hsuc.pdf",
               "type": "pdf",
               "relevant": false,
-              "source_query": "architecture plan",
-              "title": "University Club of Chicago : floor plans, illustrative sketches and brief descri",
+              "source_query": "housing project",
+              "title": "Public housing, population redistribution, and urban development in Singapore",
               "signals": [
                 "keyword"
               ]
@@ -7538,27 +7215,27 @@
   ],
   "summary": {
     "hybrid": {
-      "P@5": 0.886,
-      "P@10": 0.893,
+      "P@5": 0.929,
+      "P@10": 0.9,
       "R@20": 0.369,
-      "MRR": 0.964
+      "MRR": 1.0
     },
     "hybrid_plain": {
       "P@5": 0.414,
-      "P@10": 0.557,
-      "R@20": 0.276,
-      "MRR": 0.533
+      "P@10": 0.55,
+      "R@20": 0.273,
+      "MRR": 0.53
     },
     "visual": {
       "P@5": 0.9,
       "P@10": 0.864,
-      "R@20": 0.334,
+      "R@20": 0.339,
       "MRR": 0.94
     },
     "text": {
       "P@5": 0.186,
-      "P@10": 0.129,
-      "R@20": 0.09,
+      "P@10": 0.121,
+      "R@20": 0.074,
       "MRR": 0.179
     },
     "keyword": {
