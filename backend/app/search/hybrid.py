@@ -1,5 +1,8 @@
 """Hybrid search: three retrievers fused with confidence-gated Reciprocal Rank Fusion.
 
+(Summary: rank within each signal, scaled by that signal's confidence; an asset's score is its
+best signal plus half of the others; results below 30% of the top score are hidden.)
+
   visual   CLIP text-embedding of the query vs image / keyframe / page-render vectors
            -> "a woman standing with a cat", "modern living room"
   text     BGE query-embedding vs OCR / PDF text / transcript / caption chunks
@@ -19,6 +22,10 @@ signal's RRF term is now multiplied by a 0..1 confidence from its raw score (a l
 ramp between a "noise" and a "clearly relevant" level measured on this data). BM25 is
 supporting evidence only: it can raise assets that another signal found, but can't add
 new ones, because shared words alone ("playing", "kitchen") are weak evidence.
+
+Why "best + partial support": a plain sum favours PDFs, which can match through three
+signals while a photo can only match visually. An asset's score is its strongest signal
+plus SUPPORT_WEIGHT x the others, so one excellent match beats several mediocre ones.
 The evaluation compares plain and gated fusion (evaluation/README.md).
 
 Query intent: words like "videos", "photos" or "brochures" give a soft boost to that
@@ -42,6 +49,10 @@ WEIGHTS = {"visual": 1.0, "text": 1.0, "keyword": 0.6}
 CONFIDENCE_RANGE = {"visual": (0.20, 0.27), "text": (0.60, 0.72)}
 CANDIDATES = 300
 INTENT_BOOST = 1.5
+# An asset's score = its strongest signal + this share of its other signals. 1.0 would be a
+# plain sum (favours PDFs, which can match on 3 signals while photos match on 1); 0 ignores
+# supporting evidence (hurts documents). 0.5 gave the best overall evaluation results.
+SUPPORT_WEIGHT = 0.5
 # Hide results scoring below this share of the best result. Without it, a query with only a
 # few true matches ("flowers": 2 photos in the library) lists dozens of weak look-alikes
 # after them. 0.3 was the strictest level that lost no relevant result in the evaluation.
@@ -101,7 +112,7 @@ def confidence(signal: str, score: float) -> float:
 
 def fuse(lists: dict[str, list[dict]], intent: set[str], types_by_asset: dict[int, str],
          gated: bool = True) -> list[dict]:
-    fused: dict[int, dict] = defaultdict(lambda: {"score": 0.0, "matches": {}})
+    fused: dict[int, dict] = defaultdict(lambda: {"score": 0.0, "parts": [], "matches": {}})
     primary = [s for s in lists if s != "keyword"]
     for signal in primary + (["keyword"] if "keyword" in lists else []):
         for rank, hit in enumerate(lists[signal], start=1):
@@ -110,9 +121,15 @@ def fuse(lists: dict[str, list[dict]], intent: set[str], types_by_asset: dict[in
                 continue   # keyword only supports assets another signal already found
             conf = confidence(signal, hit["score"]) if gated else 1.0
             entry = fused[aid]
-            entry["score"] += conf * WEIGHTS[signal] / (RRF_K + rank)
+            entry["parts"].append(conf * WEIGHTS[signal] / (RRF_K + rank))
             entry["matches"][signal] = {**hit, "rank": rank}
+    # Best signal counts fully, the others as a partial bonus. A plain sum let a PDF with
+    # several mediocre matches ("flowers" mentioned in its text) outrank a photo with one
+    # excellent visual match, since photos have no text signals to add up.
+    support = SUPPORT_WEIGHT if gated else 1.0      # hybrid_plain keeps the plain sum
     for aid, entry in fused.items():
+        best = max(entry["parts"])
+        entry["score"] = best + support * (sum(entry.pop("parts")) - best)
         if intent and types_by_asset.get(aid) in intent:
             entry["score"] *= INTENT_BOOST
     return sorted(({"asset_id": aid, **e} for aid, e in fused.items() if e["score"] > 0),

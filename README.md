@@ -18,7 +18,7 @@ Everything runs locally on a CPU-only laptop with free, open-source models.
 | Indexed | 2,005 unique assets; 15 duplicates linked, 3 corrupted files failed with reasons, 3 unsupported files recorded |
 | First full index | 39 min on a CPU-only laptop |
 | Re-run with no changes | **1 second** (2,023 files skipped without re-hashing) |
-| Search quality (14 test queries) | **P@5 0.89 · P@10 0.89 · MRR 0.96**; the first result is relevant for 13 of 14 queries |
+| Search quality (14 test queries) | **P@5 0.93 · P@10 0.90 · MRR 1.00**; the first result is relevant for all 14 queries |
 | Search latency | about 0.15–0.2 s per query (the first query after startup is about 0.6 s while models warm up) |
 
 ---
@@ -211,7 +211,10 @@ Interactive docs: http://localhost:8000/docs
   queries rely mostly on the visual match (a person talking to the camera).
 - **Genre words dominate some document queries.** "Tourism brochure" also returns car brochures, because "brochure"
   matches the type of document rather than its topic (see the evaluation write-up).
-- **PDF text can leak into photo queries.** A PDF that talks about living rooms can rank among living-room photos.
+- **Photos compete with fewer signals than PDFs.** Photos have no text (captions/OCR off by default), so a PDF that
+  merely *mentions* a subject can still outrank a photo that *shows* it (e.g. "flowers" with no type filter).
+  Scoring by the best signal plus half of the others reduced this; enabling captions (`CAPTION_PROVIDER=groq`) is
+  the proper fix, since photos then get text too.
 - **Result cut-off is relative, not absolute.** Results scoring below 30% of the best result are hidden, so
   "flowers" (2 true matches in the library) shows 5 results instead of 57 look-alikes. If a query has *no* good
   match at all, the best weak match still sets the bar, so a few weak results can still appear.

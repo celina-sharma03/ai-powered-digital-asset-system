@@ -79,7 +79,9 @@ search can group hits back to assets and open the preview at the matching moment
    - The confidence (0–1, a ramp over the raw score: CLIP 0.20→0.27, BGE 0.60→0.72) stops a weak #1 in one list
      from counting as much as a strong #1 in another.
    - BM25 only boosts assets that a semantic signal already found.
-   - The evaluation motivated this: plain RRF gave P@5 0.41, gated fusion gives 0.89. See `evaluation/README.md`.
+   - An asset's score is its **best** signal plus **half** of the others (`SUPPORT_WEIGHT = 0.5`), so a photo with
+     one excellent visual match isn't outranked by a PDF with several mediocre ones.
+   - The evaluation motivated all of this: plain RRF gave P@5 0.41; the final fusion gives 0.93. See `evaluation/README.md`.
 4. **Filters** (type, folder, size, duration) and removal of assets with no file left on disk.
 5. **Relative cut-off:** results scoring below 30% of the best remaining result are dropped, so a query with few
    true matches doesn't trail off into dozens of weak look-alikes.
@@ -105,7 +107,7 @@ search can group hits back to assets and open the preview at the matching moment
 | Support a new file type (e.g. `.docx`) | Add a processor that returns `Extracted` (see `indexing/pdf.py`), register its extensions in `indexing/types.py` and the function in `PROCESSORS` in `indexing/pipeline.py` |
 | Swap the visual model (e.g. SigLIP) | `CLIP_MODEL` in `.env` + `clip_dim()` in `ai/embeddings.py`. Delete `storage/` (vector size changes) or bump `PIPELINE_VERSION` |
 | Sample video frames differently | `.env` `VIDEO_*` settings, or `frame_timestamps()` in `indexing/video.py` |
-| Tune ranking | `WEIGHTS`, `CONFIDENCE_RANGE`, `INTENT_BOOST` at the top of `search/hybrid.py`, then re-run `scripts/evaluate.py` |
+| Tune ranking | `WEIGHTS`, `CONFIDENCE_RANGE`, `SUPPORT_WEIGHT`, `MIN_RELATIVE_SCORE`, `INTENT_BOOST` at the top of `search/hybrid.py`, then re-run `scripts/evaluate.py` |
 | Add a filter (e.g. date) | Query param in `main.py` → `_passes_filters()` in `search/hybrid.py` → a control in `SearchView.jsx` |
 | Re-process everything after a logic change | Bump `PIPELINE_VERSION` in `config.py`; the next run reprocesses only outdated assets |
 | Enable AI captions | `.env`: `CAPTION_PROVIDER=groq`, `GROQ_API_KEY=…` |
