@@ -5,7 +5,7 @@ Index a folder of **images, videos and PDFs** and find assets with **natural-lan
 *content* of the files, never their filenames or folder names.
 Everything runs locally on a CPU-only laptop with free, open-source models.
 
-- **Demo video:** _add link here_
+- **Demo video:** [Watch on Google Drive](https://drive.google.com/file/d/1nV_OCXbhWTc0DfhwkczYPJi5tzEl84f3/view?usp=sharing)
 - **Architecture and data flow:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Dataset summary:** [docs/DATASET.md](docs/DATASET.md)
 - **Search evaluation:** [evaluation/README.md](evaluation/README.md) (method and findings) · [evaluation/results.md](evaluation/results.md) (raw results)
