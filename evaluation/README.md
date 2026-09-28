@@ -3,7 +3,8 @@
 **Goal:** check that search returns the *right* assets, not only that the API responds, and use the
 measurements to improve ranking.
 
-- Queries: [queries.json](queries.json) (14 test searches: what the user wants and which assets are expected)
+- **The 14 test searches, one table:** [below](#the-14-test-searches) (goal, expected assets, relevance, weak spots)
+- Queries: [queries.json](queries.json) (the same searches in machine-readable form, used by the script)
 - Raw results: [results.md](results.md) (top-10 per query with relevance marks) and `results.json`
 - Script: `backend/scripts/evaluate.py` (runs every query through the real `/api/search` endpoint)
 
@@ -40,24 +41,33 @@ Mean over the 14 queries:
 | text only (BGE over extracted text) | 0.19 | 0.13 | 0.18 | 0.09 |
 | keyword only (BM25) | 0.13 | 0.12 | 0.21 | 0.10 |
 
-Per query (hybrid vs visual only):
+## The 14 test searches
 
-| ID | Query | Hybrid P@10 | Hybrid MRR | Visual P@10 | Visual MRR | Notes |
-|---|---|---|---|---|---|---|
-| q01 | A woman standing with a cat | 1.0 | 1.00 | 1.0 | 1.00 | |
-| q02 | Customer testimonial videos | 1.0 | 1.00 | 1.0 | 1.00 | Visual match on "person talking to camera"; intent "videos" boosts videos |
-| q03 | Brochures related to residential projects | 0.9 | 1.00 | 0.8 | 1.00 | Text signal adds house-plan books and apartment brochures |
-| q04 | Images showing a modern living room | 1.0 | 1.00 | 1.0 | 1.00 | |
-| q05 | Videos containing construction activity | 1.0 | 1.00 | 1.0 | 1.00 | |
-| q06 | A dog playing outside | 1.0 | 1.00 | 1.0 | 1.00 | |
-| q07 | Aerial drone view of houses | 1.0 | 1.00 | 1.0 | 1.00 | |
-| q08 | Business people shaking hands | 0.9 | 1.00 | 0.9 | 1.00 | One office-interview video without a handshake |
-| q09 | Waves crashing on the beach | 1.0 | 1.00 | 1.0 | 1.00 | Mixes beach photos and ocean videos |
-| q10 | Someone cooking food in a kitchen | 0.9 | 1.00 | 0.9 | 1.00 | |
-| q11 | City skyline lit up at night | 1.0 | 1.00 | 1.0 | 1.00 | |
-| q12 | Company annual report with financial results | 0.6 | 1.00 | 0.4 | 1.00 | Text and keyword signals are essential for documents |
-| q13 | Travel and tourism brochure | 0.4 | 1.00 | 0.2 | 0.17 | Hardest query, see below |
-| q14 | Team meeting in an office | 0.9 | 1.00 | 0.9 | 1.00 | |
+For each search: what the user is trying to find, which assets should appear, whether the returned results
+were relevant (top 10, final hybrid search), and where it performed poorly. "Relevant" was checked against the
+labels and by looking at the results (see Method). The full top-10 lists with ✅/❌ are in [results.md](results.md).
+
+| # | Search | What the user is trying to find | Expected assets | Were the results relevant? | Where it performed poorly |
+|---|---|---|---|---|---|
+| q01 | A woman standing with a cat | Photos showing a woman together with a cat | The 120 "woman with cat" photos (not the 128 photos of cats alone) | ✅ 10/10 relevant; #1 relevant | Nothing notable. Cat-only photos stayed out of the top 10 |
+| q02 | Customer testimonial videos | Videos of a person speaking to the camera, interview/testimonial style | The 36 "person talking to camera" and "testimonial interview" videos | ✅ 10/10 relevant, all videos (the word "videos" boosts video results) | Found from visuals only: almost no stock video has speech, so a testimonial that *looks* ordinary would be missed |
+| q03 | Brochures related to residential projects | PDFs about homes, apartments or housing developments | The 54 real-estate, housing-project and apartment PDFs, plus house-plan books (judged relevant by hand) | ✅ 9/10 relevant; #1 relevant | #2 is a design guide for public plazas: architecture, but not residential |
+| q04 | Images showing a modern living room | Interior photos of contemporary living rooms | The 128 "modern living room" photos | ✅ 10/10 relevant | Before the third ranking change, a home-plans PDF (its text mentions living rooms) ranked #3 |
+| q05 | Videos containing construction activity | Footage of construction sites, machinery and workers | The 33 construction-site and construction-worker videos | ✅ 10/10 relevant | Nothing notable |
+| q06 | A dog playing outside | Photos of dogs playing | The 116 "dog playing" photos | ✅ 10/10 relevant | Nothing notable |
+| q07 | Aerial drone view of houses | Drone footage over residential areas | The 18 "aerial view houses" videos | ✅ 10/10 relevant | Before the third ranking change, a housing-strategy PDF ranked #1 through its text |
+| q08 | Business people shaking hands | Handshake photos in a business setting | The 119 "handshake" photos | ✅ 9/10 relevant | #2 is an office-interview video with no handshake visible: CLIP matched "business people" but not the action |
+| q09 | Waves crashing on the beach | Beach and ocean-wave photos or videos | The 113 beach photos and 18 ocean-wave videos | ✅ 10/10 relevant, a mix of videos and photos | Nothing notable |
+| q10 | Someone cooking food in a kitchen | Footage of a person preparing food | The 18 "cooking" videos | ✅ 9/10 relevant | #10 is a kitchen photo with oven mitts but nobody cooking: right place, missing action |
+| q11 | City skyline lit up at night | Night-time city skyline photos | The 115 "city skyline night" photos | ✅ 10/10 relevant | Before the third ranking change, an apartment brochure with a skyline cover appeared |
+| q12 | Company annual report with financial results | Annual report PDFs | The 12 "annual report" PDFs | ⚠️ 6/10 relevant; #1 relevant | A data-products catalogue and two Interpol brochures ranked in the top 10: "report" and "brochure" match the *type* of document, not the topic |
+| q13 | Travel and tourism brochure | Tourism / travel guide PDFs | The 14 "tourism brochure" PDFs | ⚠️ 4/10 relevant; #1 relevant | **Weakest search.** Real-estate brochures, a car "Estate" brochure and a restaurant menu fill the top 10: the word "brochure" dominates over "travel" |
+| q14 | Team meeting in an office | People meeting or working together in an office | The 127 "business meeting" photos and 18 "office work" videos | ✅ 9/10 relevant, photos and videos | One interview-style video (two people at a desk) is borderline; labelled not relevant to be strict |
+
+**Summary:** 12 of 14 searches return 9 or 10 relevant results in the top 10, and **every** search has a relevant
+first result. The two weak ones are both document searches where a genre word ("brochure", "report") matters more
+than the topic; see *Where search performs poorly* below. Visual-only search does worse on exactly these two
+(P@10 0.4 and 0.2), which shows why the text and keyword signals are needed for documents.
 
 ## What the evaluation changed
 
