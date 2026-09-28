@@ -81,7 +81,9 @@ search can group hits back to assets and open the preview at the matching moment
    - BM25 only boosts assets that a semantic signal already found.
    - The evaluation motivated this: plain RRF gave P@5 0.41, gated fusion gives 0.89. See `evaluation/README.md`.
 4. **Filters** (type, folder, size, duration) and removal of assets with no file left on disk.
-5. **Response** per asset: why it matched (each signal's rank, score and snippet), where to jump
+5. **Relative cut-off:** results scoring below 30% of the best remaining result are dropped, so a query with few
+   true matches doesn't trail off into dozens of weak look-alikes.
+6. **Response** per asset: why it matched (each signal's rank, score and snippet), where to jump
    (timestamp or page), all duplicate paths.
 
 ## Reliability

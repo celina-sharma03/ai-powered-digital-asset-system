@@ -42,6 +42,10 @@ WEIGHTS = {"visual": 1.0, "text": 1.0, "keyword": 0.6}
 CONFIDENCE_RANGE = {"visual": (0.20, 0.27), "text": (0.60, 0.72)}
 CANDIDATES = 300
 INTENT_BOOST = 1.5
+# Hide results scoring below this share of the best result. Without it, a query with only a
+# few true matches ("flowers": 2 photos in the library) lists dozens of weak look-alikes
+# after them. 0.3 was the strictest level that lost no relevant result in the evaluation.
+MIN_RELATIVE_SCORE = 0.3
 
 INTENT_WORDS = {
     "video": r"\b(videos?|clips?|footage|films?|recordings?)\b",
@@ -128,11 +132,14 @@ def search(query: str, *, mode: str = "hybrid", file_types: list[str] | None = N
     ranked = fuse(lists, intent, {aid: a["file_type"] for aid, a in assets.items()},
                   gated=(mode != "hybrid_plain"))   # hybrid_plain = ungated RRF, kept for evaluation
 
-    results = []
+    results, top_score = [], None
     for r in ranked:
         a = assets.get(r["asset_id"])
         if a is None or not _passes_filters(a, file_types, folder, min_size, max_size, min_duration, max_duration):
             continue
+        top_score = top_score or r["score"]           # best score among results that pass the filters
+        if r["score"] < MIN_RELATIVE_SCORE * top_score:
+            break                                      # ranked best-first, so everything after is weaker
         results.append(_to_result(a, r))
         if len(results) >= limit:
             break

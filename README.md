@@ -212,9 +212,9 @@ Interactive docs: http://localhost:8000/docs
 - **Genre words dominate some document queries.** "Tourism brochure" also returns car brochures, because "brochure"
   matches the type of document rather than its topic (see the evaluation write-up).
 - **PDF text can leak into photo queries.** A PDF that talks about living rooms can rank among living-room photos.
-- **Weak matches are listed rather than hidden.** Anything above the noise threshold is shown, ranked. In a large
-  library weak matches sink far down, but in a tiny folder they can appear on the first screen (at a very low
-  score). A relative cut-off (hide results below e.g. 5% of the top score) would fix this.
+- **Result cut-off is relative, not absolute.** Results scoring below 30% of the best result are hidden, so
+  "flowers" (2 true matches in the library) shows 5 results instead of 57 look-alikes. If a query has *no* good
+  match at all, the best weak match still sets the bar, so a few weak results can still appear.
 - **CLIP ViT-B/32 is a small model.** It struggles with counting, fine-grained attributes ("a *red* car next to a *blue* one"),
   negation ("no people"), and text inside images unless `OCR_IMAGES` is on.
 - **PDF understanding is text-first.** Only the first 3 pages are embedded visually, only the first 60 pages are read,

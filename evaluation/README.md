@@ -81,6 +81,22 @@ documents (q12 P@10 0.4 → 0.7; q13 first relevant hit moves from rank 6 to ran
 > Caveat: the confidence ranges were chosen by looking at score distributions for a few of these same queries,
 > so the numbers above are somewhat optimistic. A held-out query set would give an unbiased estimate.
 
+### Second change: relative result cut-off
+
+Found by manual testing: "flowers" with the Images filter returned **57** results, but only 2 photos in the
+library contain flowers (scores 0.27 / 0.26); the rest were weak look-alikes (mountains, a dog, plants) at about 0.22.
+I tried hiding results below 10%–40% of the top result's score on all 14 queries:
+
+| Cut-off | Hybrid P@10 | Hybrid MRR | Relevant results lost (top 20, all queries) |
+|---|---|---|---|
+| none | 0.893 | 0.964 | 0 |
+| 30% (chosen) | 0.893 | 0.964 | 0 |
+| 40% | 0.893 | 0.964 | 2 |
+
+30% was the strictest level with no loss. "flowers" now returns 5 results: the 2 flower photos first, then
+3 borderline ones (a building behind a lilac bush, and indoor plants). Queries with many true matches, such as
+"a woman with a cat", are unaffected. The text-only diagnostic mode's R@20 dips slightly (0.090 → 0.074).
+
 ## Where search performs poorly
 
 1. **Document genre vs topic (q13, q12).** "Brochure" and "report" match the *kind* of document, so car brochures
