@@ -4,10 +4,13 @@ Shows the two core tables side by side:
   files   one row per PATH on disk     -> which asset it points to
   assets  one row per unique CONTENT   -> AI processing status
 
-Usage (from repo root):  backend/.venv/Scripts/python backend/scripts/inspect_db.py
+Usage (from repo root):
+    backend/.venv/Scripts/python backend/scripts/inspect_db.py                  # first rows of each table
+    backend/.venv/Scripts/python backend/scripts/inspect_db.py my_new_files     # only paths containing this text
 Uses the same STORAGE_DIR as the app (.env or environment variable).
 """
 
+import argparse
 import sqlite3
 import sys
 from pathlib import Path
@@ -19,6 +22,10 @@ LIMIT = 30
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("path_filter", nargs="?", default="", help="only show files whose path contains this text")
+    path_filter = f"%{ap.parse_args().path_filter}%"
+
     if not settings.db_path.exists():
         sys.exit(f"No database yet at {settings.db_path} (run an indexing pass first).")
     conn = sqlite3.connect(settings.db_path)
@@ -27,7 +34,8 @@ def main() -> None:
     print("FILES  (one row per path on disk)")
     print(f"  {'id':>4}  {'path':<52} {'status':<12} -> asset_id")
     for fid, rel, status, aid in conn.execute(
-            "SELECT id, rel_path, status, asset_id FROM files ORDER BY id LIMIT ?", (LIMIT,)):
+            "SELECT id, rel_path, status, asset_id FROM files WHERE rel_path LIKE ? ORDER BY id LIMIT ?",
+            (path_filter, LIMIT)):
         print(f"  {fid:>4}  {rel[:52]:<52} {status:<12} -> {aid if aid is not None else '-'}")
 
     print("\nASSETS (one row per unique content)")
@@ -35,7 +43,9 @@ def main() -> None:
     for aid, ftype, digest, status, error, nfiles in conn.execute(
             """SELECT a.id, a.file_type, a.content_hash, a.status, a.error,
                       (SELECT COUNT(*) FROM files f WHERE f.asset_id = a.id AND f.status = 'ok')
-               FROM assets a ORDER BY a.id LIMIT ?""", (LIMIT,)):
+               FROM assets a
+               WHERE a.id IN (SELECT asset_id FROM files WHERE rel_path LIKE ?)
+               ORDER BY a.id LIMIT ?""", (path_filter, LIMIT)):
         print(f"  {aid:>4}  {ftype:<6} {digest[:12]}.. {status:<9} {nfiles:>5}  {error or ''}")
 
     run = conn.execute("SELECT * FROM runs ORDER BY id DESC LIMIT 1").fetchone()
